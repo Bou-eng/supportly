@@ -1,11 +1,16 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const ticketSchema = new mongoose.Schema(
   {
+    ticketNumber: {
+      type: String, // Stores "SUP-1001"
+      unique: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User', // Links this ticket to the customer who created it
+      ref: 'User',
     },
     title: {
       type: String,
@@ -15,6 +20,11 @@ const ticketSchema = new mongoose.Schema(
     description: {
       type: String,
       required: [true, 'Please add a description of the issue'],
+    },
+    category: {
+      type: String,
+      enum: ['Technical', 'Billing', 'Account Access', 'General Inquiry'],
+      default: 'General Inquiry',
     },
     status: {
       type: String,
@@ -28,13 +38,29 @@ const ticketSchema = new mongoose.Schema(
     },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Support agent assigned to resolve the ticket
+      ref: 'User',
+      default: null,
+    },
+    team: {
+      type: String,
       default: null,
     },
   },
   {
-    timestamps: true, // Automatically manages createdAt and updatedAt
+    timestamps: true,
   }
 );
+
+// Pre-save hook: auto-generates SUP-1001 before saving a new ticket
+ticketSchema.pre('save', async function () {
+  if (this.isNew) {
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: 'ticketNumber' },
+      { $inc: { seq: 1 } },
+      { returnDocument: 'after', upsert: true } // Fixed deprecation warning
+    );
+    this.ticketNumber = `SUP-${counter.seq}`;
+  }
+});
 
 module.exports = mongoose.model('Ticket', ticketSchema);
