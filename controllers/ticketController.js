@@ -1,4 +1,5 @@
 const Ticket = require('../models/ticket');
+const createActivityLog = require('../utils/createActivityLog'); 
 
 // @desc    Create a new ticket
 // @route   POST /api/tickets
@@ -149,14 +150,11 @@ const updateTicket = async (req, res) => {
 // @desc    Update ticket status
 // @route   PATCH /api/tickets/:id/status
 // @access  Private
+// 1. Update Ticket Status
 const updateTicketStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const ticketId = req.params.id;
-
-    if (!status) {
-      return res.status(400).json({ message: 'Please provide a status' });
-    }
 
     let ticket = ticketId.startsWith('SUP-')
       ? await Ticket.findOne({ ticketNumber: ticketId })
@@ -166,14 +164,25 @@ const updateTicketStatus = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    // Update status and manage resolvedAt timestamp automatically
+    const oldStatus = ticket.status;
     ticket.status = status;
-    if (status === 'resolved') {
-      ticket.resolvedAt = new Date();
+
+    if (status === 'resolved' || status === 'closed') {
+      ticket.resolvedAt = Date.now();
     }
 
-    const updatedTicket = await ticket.save();
-    res.json(updatedTicket);
+    await ticket.save();
+
+    // Log Activity
+    await createActivityLog({
+      ticketId: ticket._id,
+      actorId: req.user._id,
+      action: 'STATUS_CHANGE',
+      oldValue: oldStatus,
+      newValue: status,
+    });
+
+    res.json(ticket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -182,14 +191,11 @@ const updateTicketStatus = async (req, res) => {
 // @desc    Update ticket priority
 // @route   PATCH /api/tickets/:id/priority
 // @access  Private
+// 2. Update Ticket Priority
 const updateTicketPriority = async (req, res) => {
   try {
     const { priority } = req.body;
     const ticketId = req.params.id;
-
-    if (!priority) {
-      return res.status(400).json({ message: 'Please provide a priority level' });
-    }
 
     let ticket = ticketId.startsWith('SUP-')
       ? await Ticket.findOne({ ticketNumber: ticketId })
@@ -199,10 +205,20 @@ const updateTicketPriority = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
+    const oldPriority = ticket.priority;
     ticket.priority = priority;
-    const updatedTicket = await ticket.save();
+    await ticket.save();
 
-    res.json(updatedTicket);
+    // Log Activity
+    await createActivityLog({
+      ticketId: ticket._id,
+      actorId: req.user._id,
+      action: 'PRIORITY_CHANGE',
+      oldValue: oldPriority,
+      newValue: priority,
+    });
+
+    res.json(ticket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -211,9 +227,10 @@ const updateTicketPriority = async (req, res) => {
 // @desc    Assign ticket to an agent or team
 // @route   PATCH /api/tickets/:id/assign
 // @access  Private (Agent/Admin/Manager only)
+// 3. Assign Ticket
 const assignTicket = async (req, res) => {
   try {
-    const { assignedTo, team } = req.body;
+    const { assignedTo } = req.body;
     const ticketId = req.params.id;
 
     let ticket = ticketId.startsWith('SUP-')
@@ -224,11 +241,20 @@ const assignTicket = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    if (assignedTo !== undefined) ticket.assignedTo = assignedTo;
-    if (team !== undefined) ticket.team = team;
+    const oldAssignee = ticket.assignedTo ? ticket.assignedTo.toString() : 'unassigned';
+    ticket.assignedTo = assignedTo;
+    await ticket.save();
 
-    const updatedTicket = await ticket.save();
-    res.json(updatedTicket);
+    // Log Activity
+    await createActivityLog({
+      ticketId: ticket._id,
+      actorId: req.user._id,
+      action: 'ASSIGNMENT_CHANGE',
+      oldValue: oldAssignee,
+      newValue: assignedTo,
+    });
+
+    res.json(ticket);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
