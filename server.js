@@ -5,6 +5,12 @@ const connectDB = require('./config/db');
 const PORT = process.env.PORT || 5001;
 const authRoutes = require('./routes/authRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const knowledgeRoutes = require('./routes/knowledgeRoutes');
+const userRoutes = require('./routes/userRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 dotenv.config();
 connectDB();
@@ -15,6 +21,12 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/articles', knowledgeRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.get('/', (request, response) => {
     response.send('APIis running...');
