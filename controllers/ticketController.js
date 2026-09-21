@@ -24,14 +24,53 @@ const createTicket = async (req, res) => {
   }
 };
 
-// @desc    Get user tickets
+// @desc    Get tickets with filtering, pagination, and role-based scoping
 // @route   GET /api/tickets
 // @access  Private
 const getTickets = async (req, res) => {
   try {
-    // Customers only see their own tickets
-    const tickets = await Ticket.find({ user: req.user._id });
-    res.json(tickets);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Build filter query object
+    let query = {};
+
+    // 1. Role-based scoping: Customers only see their own tickets
+    if (req.user.role === 'customer') {
+      query.user = req.user._id;
+    }
+
+    // 2. Query parameter filters
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+
+    if (req.query.priority) {
+      query.priority = req.query.priority;
+    }
+
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+
+    if (req.query.team) {
+      query.team = req.query.team;
+    }
+
+    // Execute query with pagination and total count
+    const total = await Ticket.countDocuments(query);
+    const tickets = await Ticket.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      tickets,
+      page,
+      pages: Math.ceil(total / limit),
+      total,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
