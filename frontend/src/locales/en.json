@@ -79,5 +79,221 @@
     "high": "High",
     "medium": "Medium",
     "low": "Low"
+  },
+  "header": {
+    "searchPlaceholder": "Search tickets, users, articles...",
+    "notifications": "Notifications"
+  },
+  "promo": {
+    "title": "Better support, happier people",
+    "text": "Supportly gives your team tools to resolve tickets quickly.",
+    "button": "Learn More"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Welcome back! Here is what's happening with your support desk today.",
+    "totalTickets": "Total Tickets",
+    "openTickets": "Open Tickets",
+    "inProgress": "In Progress",
+    "resolved": "Resolved Tickets",
+    "avgResponseTime": "Avg. Response Time",
+    "ticketActivity": "Ticket Activity",
+    "priorityDistribution": "Priority Distribution",
+    "recentTickets": "Recent Tickets",
+    "viewAll": "View All",
+    "table": {
+      "id": "Ticket ID",
+      "subject": "Subject",
+      "customer": "Customer",
+      "priority": "Priority",
+      "status": "Status",
+      "created": "Created"
+    }
+  },
+  "tickets": {
+    "title": "My Tickets",
+    "subtitle": "Manage and respond to support requests assigned to you or your team.",
+    "searchPlaceholder": "Filter by ID or subject...",
+    "filterStatus": "All Statuses",
+    "filterPriority": "All Priorities",
+    "table": {
+      "id": "ID",
+      "subject": "Subject",
+      "customer": "Customer",
+      "assignee": "Assignee",
+      "priority": "Priority",
+      "status": "Status",
+      "updated": "Last Updated",
+      "actions": "Actions"
+    },
+    "noTickets": "No tickets found matching your filters."
+  }, 
+  "ticketDetail": {
+    "backToTickets": "Back to Tickets",
+    "customer": "Customer",
+    "assignee": "Assignee",
+    "unassigned": "Unassigned",
+    "priority": "Priority",
+    "status": "Status",
+    "category": "Category",
+    "created": "Created",
+    "timeline": "Conversation History",
+    "replyTab": "Public Reply",
+    "internalNoteTab": "Internal Note",
+    "placeholderReply": "Type your response to the customer...",
+    "placeholderNote": "Type an internal note (only visible to team members)...",
+    "sendReply": "Send Reply",
+    "saveNote": "Add Internal Note",
+    "updateDetails": "Ticket Details"
+  }, 
+  "createTicket": {
+    "title": "Submit a New Ticket",
+    "subtitle": "Provide as much detail as possible so our support team can help you quickly.",
+    "subjectLabel": "Subject / Summary",
+    "subjectPlaceholder": "e.g., Unable to connect custom domain",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Select a category",
+    "contactEmailLabel": "Contact Email",
+    "contactEmailPlaceholder": "you@company.com",
+    "priorityLabel": "Priority Level",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe your issue in detail. Include error messages or steps to reproduce...",
+    "attachmentsLabel": "Attachments (Optional)",
+    "dropzoneText": "Click or drag files here to upload screenshots or logs",
+    "submitBtn": "Submit Ticket",
+    "cancelBtn": "Cancel"
+  }, 
+  "teamQueue": {
+    "title": "Team Queue",
+    "subtitle": "Visualize workload distribution and manage ticket stages across your support team.",
+    "columns": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "emptyColumn": "No tickets in this stage"
+  }, 
+  "knowledgeBase": {
+    "title": "Knowledge Base",
+    "subtitle": "Search and manage self-service documentation and help articles.",
+    "searchPlaceholder": "Search articles, guides, or troubleshooting steps...",
+    "newArticleBtn": "Create Article",
+    "categories": "Categories",
+    "articles": "Articles",
+    "views": "views",
+    "updated": "Updated",
+    "noResults": "No articles found matching your search query."
+  }, 
+  "users": {
+    "title": "Users Management",
+    "subtitle": "Manage team roles, invite support agents, and control access permissions.",
+    "inviteBtn": "Invite User",
+    "searchPlaceholder": "Search users by name or email...",
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "status": "Status",
+      "ticketsAssigned": "Open Tickets",
+      "actions": "Actions"
+    },
+    "roles": {
+      "admin": "Admin",
+      "agent": "Agent",
+      "manager": "Manager"
+    },
+    "status": {
+      "active": "Active",
+      "offline": "Offline",
+      "invited": "Invited"
+    }
+  }, 
+  "inviteModal": {
+    "title": "Invite New Team Member",
+    "subtitle": "Send an email invitation to join your support workspace.",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "colleague@company.com",
+    "roleLabel": "Assigned Role",
+    "sendBtn": "Send Invitation",
+    "cancelBtn": "Cancel",
+    "successMsg": "Invitation sent successfully!"
+  }, 
+  "kb": {
+    "title": "Knowledge Base",
+    "subtitle": "Self-service articles and documentation for customers and support agents.",
+    "searchPlaceholder": "Search articles or topics...",
+    "newArticleBtn": "Create Article",
+    "modal": {
+      "title": "Create New Article",
+      "articleTitle": "Article Title",
+      "articleTitlePlaceholder": "e.g., How to reset your account password",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "content": "Article Content",
+      "contentPlaceholder": "Write your detailed guide or solution here...",
+      "titleRequired": "Please enter an article title.",
+      "categoryRequired": "Please select a category.",
+      "contentRequired": "Please enter article content.",
+      "cancelBtn": "Cancel",
+      "saveBtn": "Publish Article",
+      "successMsg": "Article published successfully!"
+    }
+  }, 
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your workspace, profile, and notification preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "workspace": "Workspace",
+      "notifications": "Notifications"
+    },
+    "profile": {
+      "title": "Personal Information",
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "language": "Preferred Language",
+      "saveBtn": "Save Profile"
+    },
+    "workspace": {
+      "title": "Workspace Details",
+      "name": "Workspace Name",
+      "domain": "Custom Subdomain",
+      "saveBtn": "Update Workspace"
+    },
+    "notifications": {
+      "title": "Email Notifications",
+      "ticketAssigned": "When a ticket is assigned to me",
+      "ticketUpdated": "When a ticket status changes",
+      "weeklyReport": "Receive weekly analytics digest",
+      "saveBtn": "Save Preferences"
+    },
+    "successMsg": "Settings saved successfully!"
+  }, 
+  "reports": {
+    "title": "Analytics & Reports",
+    "subtitle": "Track support team performance, ticket volumes, and resolution times.",
+    "timeRange": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days"
+    },
+    "metrics": {
+      "totalTickets": "Total Tickets Received",
+      "resolvedTickets": "Resolved Tickets",
+      "avgResponseTime": "Avg Response Time",
+      "csatScore": "Customer Satisfaction (CSAT)"
+    },
+    "charts": {
+      "volumeTitle": "Ticket Volume Over Time",
+      "statusTitle": "Tickets by Status",
+      "agentPerformance": "Agent Performance Breakdown"
+    },
+    "table": {
+      "agent": "Agent Name",
+      "assigned": "Assigned",
+      "resolved": "Resolved",
+      "avgTime": "Avg Resolution Time",
+      "rating": "Rating"
+    }
   }
 }

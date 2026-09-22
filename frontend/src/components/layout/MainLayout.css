@@ -1,0 +1,31 @@
+.layout-wrapper {
+  min-height: 100vh;
+  background-color: var(--bg-main);
+}
+
+.layout-content {
+  margin-left: 260px;
+  margin-top: 70px;
+  padding: 2rem;
+  min-height: calc(100vh - 70px);
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .layout-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-content {
+    margin-left: 64px;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-content {
+    margin-left: 0;
+  }
+}

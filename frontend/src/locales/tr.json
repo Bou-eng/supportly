@@ -79,5 +79,221 @@
     "high": "Yüksek",
     "medium": "Orta",
     "low": "Düşük"
+  },
+  "header": {
+    "searchPlaceholder": "Biletler, kullanıcılar veya makalelerde ara...",
+    "notifications": "Bildirimler"
+  },
+  "promo": {
+    "title": "Daha iyi destek, mutlu insanlar",
+    "text": "Supportly ekibinize talepleri hızla çözme imkanı tanır.",
+    "button": "Daha Fazla Bilgi"
+  }, 
+  "overview": {
+    "title": "Genel Bakış",
+    "subtitle": "Tekrar hoş geldiniz! Bugün destek merkezinizde son durum.",
+    "totalTickets": "Toplam Talep",
+    "openTickets": "Açık Talepler",
+    "inProgress": "Devam Edenler",
+    "resolved": "Çözülen Talepler",
+    "avgResponseTime": "Ort. Yanıt Süresi",
+    "ticketActivity": "Talep Hareketleri",
+    "priorityDistribution": "Öncelik Dağılımı",
+    "recentTickets": "Son Talepler",
+    "viewAll": "Tümünü Gör",
+    "table": {
+      "id": "Talep ID",
+      "subject": "Konu",
+      "customer": "Müşteri",
+      "priority": "Öncelik",
+      "status": "Durum",
+      "created": "Oluşturulma"
+    }
+  }, 
+  "tickets": {
+    "title": "Taleplerim",
+    "subtitle": "Size veya ekibinize atanan destek taleplerini yönetin ve yanıtlayın.",
+    "searchPlaceholder": "ID veya konuya göre filtrele...",
+    "filterStatus": "Tüm Durumlar",
+    "filterPriority": "Tüm Öncelikler",
+    "table": {
+      "id": "ID",
+      "subject": "Konu",
+      "customer": "Müşteri",
+      "assignee": "Atanan",
+      "priority": "Öncelik",
+      "status": "Durum",
+      "updated": "Son Güncelleme",
+      "actions": "İşlemler"
+    },
+    "noTickets": "Filtrelerinize uygun talep bulunamadı."
+  }, 
+  "ticketDetail": {
+    "backToTickets": "Taleplere Dön",
+    "customer": "Müşteri",
+    "assignee": "Atanan",
+    "unassigned": "Atanmamış",
+    "priority": "Öncelik",
+    "status": "Durum",
+    "category": "Kategori",
+    "created": "Oluşturulma",
+    "timeline": "Konuşma Geçmişi",
+    "replyTab": "Müşteri Yanıtı",
+    "internalNoteTab": "İç Not",
+    "placeholderReply": "Müşteriye yanıtınızı yazın...",
+    "placeholderNote": "İç notunuzu yazın (yalnızca ekip üyeleri görebilir)...",
+    "sendReply": "Yanıt Gönder",
+    "saveNote": "İç Not Ekle",
+    "updateDetails": "Talep Detayları"
+  }, 
+  "createTicket": {
+    "title": "Yeni Talep Oluştur",
+    "subtitle": "Destek ekibimizin size hızlıca yardımcı olabilmesi için mümkün olduğunca fazla detay verin.",
+    "subjectLabel": "Konu / Özet",
+    "subjectPlaceholder": "Örn: Özel alan adı bağlanamıyor",
+    "categoryLabel": "Kategori",
+    "categoryPlaceholder": "Bir kategori seçin",
+    "contactEmailLabel": "İletişim E-postası",
+    "contactEmailPlaceholder": "siz@sirket.com",
+    "priorityLabel": "Öncelik Seviyesi",
+    "descriptionLabel": "Açıklama",
+    "descriptionPlaceholder": "Sorununuzu detaylıca açıklayın. Hata mesajlarını veya adımları ekleyin...",
+    "attachmentsLabel": "Ekler (İsteğe Bağlı)",
+    "dropzoneText": "Ekran görüntüleri veya günlükler yüklemek için buraya tıklayın veya dosyaları sürükleyin",
+    "submitBtn": "Talebi Gönder",
+    "cancelBtn": "İptal"
+  }, 
+  "teamQueue": {
+    "title": "Ekip Kuyruğu",
+    "subtitle": "İş yükü dağılımını görselleştirin ve destek ekibinizdeki talep aşamalarını yönetin.",
+    "columns": {
+      "open": "Açık",
+      "inProgress": "İşlemde",
+      "resolved": "Çözüldü",
+      "closed": "Kapatıldı"
+    },
+    "emptyColumn": "Bu aşamada talep yok"
+  }, 
+  "knowledgeBase": {
+    "title": "Bilgi Bankası",
+    "subtitle": "Kendi kendine yardım dokümanlarını ve kılavuzları arayın ve yönetin.",
+    "searchPlaceholder": "Makaleler, kılavuzlar veya sorun giderme adımları ara...",
+    "newArticleBtn": "Makale Oluştur",
+    "categories": "Kategoriler",
+    "articles": "Makaleler",
+    "views": "görüntülenme",
+    "updated": "Güncellendi",
+    "noResults": "Arama sorgunuza uygun makale bulunamadı."
+  }, 
+  "users": {
+    "title": "Kullanıcı Yönetimi",
+    "subtitle": "Ekip rollerini yönetin, destek temsilcileri davet edin ve erişim izinlerini kontrol edin.",
+    "inviteBtn": "Kullanıcı Davet Et",
+    "searchPlaceholder": "İsim veya e-postaya göre kullanıcı ara...",
+    "table": {
+      "user": "Kullanıcı",
+      "role": "Rol",
+      "status": "Durum",
+      "ticketsAssigned": "Açık Talepler",
+      "actions": "İşlemler"
+    },
+    "roles": {
+      "admin": "Yönetici",
+      "agent": "Temsilci",
+      "manager": "Müdür"
+    },
+    "status": {
+      "active": "Aktif",
+      "offline": "Çevrimdışı",
+      "invited": "Davet Edildi"
+    }
+  }, 
+  "inviteModal": {
+    "title": "Yeni Ekip Üyesi Davet Et",
+    "subtitle": "Destek alanınıza katılması için bir e-posta daveti gönderin.",
+    "emailLabel": "E-posta Adresi",
+    "emailPlaceholder": "meslektas@sirket.com",
+    "roleLabel": "Atanan Rol",
+    "sendBtn": "Daveti Gönder",
+    "cancelBtn": "İptal",
+    "successMsg": "Davet başarıyla gönderildi!"
+  }, 
+  "kb": {
+    "title": "Bilgi Bankası",
+    "subtitle": "Müşteriler ve destek temsilcileri için self-servis makaleler ve belgeler.",
+    "searchPlaceholder": "Makale veya konu ara...",
+    "newArticleBtn": "Makale Oluştur",
+    "modal": {
+      "title": "Yeni Makale Oluştur",
+      "articleTitle": "Makale Başlığı",
+      "articleTitlePlaceholder": "ör. Hesap şifrenizi nasıl sıfırlarsınız",
+      "category": "Kategori",
+      "categoryPlaceholder": "Bir kategori seçin",
+      "content": "Makale İçeriği",
+      "contentPlaceholder": "Detaylı rehberinizi veya çözümünüzü buraya yazın...",
+      "titleRequired": "Lütfen bir makale başlığı girin.",
+      "categoryRequired": "Lütfen bir kategori seçin.",
+      "contentRequired": "Lütfen makale içeriğini girin.",
+      "cancelBtn": "İptal",
+      "saveBtn": "Makaleyi Yayınla",
+      "successMsg": "Makale başarıyla yayınlandı!"
+    }
+  }, 
+  "settings": {
+    "title": "Ayarlar",
+    "subtitle": "Çalışma alanınızı, profilinizi ve bildirim tercihlerinizi yönetin.",
+    "tabs": {
+      "profile": "Profil",
+      "workspace": "Çalışma Alanı",
+      "notifications": "Bildirimler"
+    },
+    "profile": {
+      "title": "Kişisel Bilgiler",
+      "fullName": "Ad Soyad",
+      "email": "E-posta Adresi",
+      "language": "Tercih Edilen Dil",
+      "saveBtn": "Profili Kaydet"
+    },
+    "workspace": {
+      "title": "Çalışma Alanı Detayları",
+      "name": "Çalışma Alanı Adı",
+      "domain": "Özel Alt Alan Adı",
+      "saveBtn": "Çalışma Alanını Güncelle"
+    },
+    "notifications": {
+      "title": "E-posta Bildirimleri",
+      "ticketAssigned": "Bana bir bilet atandığında",
+      "ticketUpdated": "Bir biletin durumu değiştiğinde",
+      "weeklyReport": "Haftalık analitik özeti al",
+      "saveBtn": "Tercihleri Kaydet"
+    },
+    "successMsg": "Ayarlar başarıyla kaydedildi!"
+  }, 
+  "reports": {
+    "title": "Analiz ve Raporlar",
+    "subtitle": "Destek ekibi performansını, bilet hacimlerini ve çözüm sürelerini takip edin.",
+    "timeRange": {
+      "7d": "Son 7 gün",
+      "30d": "Son 30 gün",
+      "90d": "Son 90 gün"
+    },
+    "metrics": {
+      "totalTickets": "Toplam Gelen Bilet",
+      "resolvedTickets": "Çözülen Biletler",
+      "avgResponseTime": "Ort. Yanıt Süresi",
+      "csatScore": "Müşteri Memnuniyeti (CSAT)"
+    },
+    "charts": {
+      "volumeTitle": "Zaman İçindeki Bilet Hacmi",
+      "statusTitle": "Duruma Göre Biletler",
+      "agentPerformance": "Temsilci Performans Dağılımı"
+    },
+    "table": {
+      "agent": "Temsilci Adı",
+      "assigned": "Atanan",
+      "resolved": "Çözülen",
+      "avgTime": "Ort. Çözüm Süresi",
+      "rating": "Puan"
+    }
   }
 }

@@ -153,4 +153,30 @@
   .auth-left-panel {
     display: none;
   }
+
+  .auth-right-panel {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-header-controls {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .auth-card {
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+  }
+
+  .auth-right-panel {
+    padding: 4.5rem 0.75rem 1rem;
+  }
+
+  .form-actions-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 }

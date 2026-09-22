@@ -1,0 +1,122 @@
+.tickets-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filter-card {
+  padding: 1rem 1.25rem;
+}
+
+.filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  flex: 1;
+  max-width: 380px;
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.dropdown-filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .search-box {
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .dropdown-filters {
+    width: 100%;
+  }
+
+  .filter-select {
+    flex: 1;
+  }
+}
+
+.tickets-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.tickets-table th {
+  padding: 0.85rem 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tickets-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.subject-link {
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.subject-link:hover {
+  color: var(--primary);
+}
+
+.assignee-badge {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.no-data-cell {
+  text-align: center;
+  padding: 2.5rem 1rem !important;
+  color: var(--text-secondary);
+}

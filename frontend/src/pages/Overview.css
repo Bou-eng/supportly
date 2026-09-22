@@ -1,0 +1,195 @@
+.overview-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+/* Mock Chart Graphic */
+.mock-chart-placeholder {
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding-top: 1rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.bar {
+  width: 32px;
+  background-color: var(--primary-light);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.bar.active {
+  background-color: var(--primary);
+}
+
+.bar-label {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Priority Distribution Bars */
+.priority-distribution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.priority-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.priority-label {
+  width: 90px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background-color: var(--bg-input);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+}
+
+.fill.high { background-color: #dc2626; }
+.fill.medium { background-color: #d97706; }
+.fill.low { background-color: #0284c7; }
+
+.priority-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: 35px;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* Recent Tickets Table Styling */
+.card-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.view-all-link {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.overview-table th {
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.overview-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ticket-id-cell {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.ticket-subject-cell {
+  font-weight: 600;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .priority-item {
+    gap: 0.6rem;
+  }
+
+  .priority-label {
+    width: 76px;
+  }
+
+  .card-header-flex {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mock-chart-placeholder {
+    height: 150px;
+  }
+
+  .bar {
+    width: 24px;
+  }
+}

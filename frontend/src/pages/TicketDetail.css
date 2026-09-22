@@ -1,0 +1,232 @@
+.ticket-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.back-navigation a {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: 1.5rem;
+}
+
+.conversation-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ticket-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ticket-title-row h2 {
+  font-size: 1.4rem;
+  color: var(--text-primary);
+}
+
+.ticket-id-tag {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.ticket-meta-info {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.timeline-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem;
+}
+
+.timeline-card.internal-note {
+  background-color: #fffbe3;
+  border-color: #fef08a;
+  color: #713f12;
+}
+
+[data-theme='dark'] .timeline-card.internal-note {
+  background-color: #2b2510;
+  border-color: #713f12;
+  color: #fef08a;
+}
+
+.timeline-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.author-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.author-role-badge {
+  font-size: 0.75rem;
+  background-color: var(--bg-input);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.internal-indicator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.timeline-time {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.timeline-card-body {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Reply Box */
+.reply-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.tab-btn.internal.active {
+  background-color: #fef08a;
+  color: #713f12;
+}
+
+.reply-textarea {
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  resize: vertical;
+}
+
+.reply-textarea.internal-bg {
+  background-color: #fffdf0;
+}
+
+[data-theme='dark'] .reply-textarea.internal-bg {
+  background-color: #1a170a;
+}
+
+.reply-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+}
+
+/* Right Control Column */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.1rem;
+}
+
+.control-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.control-select, .control-input-readonly {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-card {
+    padding: 0.9rem;
+  }
+
+  .timeline-card-header,
+  .author-info {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .reply-tabs {
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}

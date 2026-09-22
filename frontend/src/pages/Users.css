@@ -1,0 +1,115 @@
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.users-filter-card {
+  padding: 1rem;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.users-table th {
+  padding: 0.85rem 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.users-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.user-cell-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.user-email {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.role-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.role-admin {
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+.role-agent {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.role-manager {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+[data-theme='dark'] .role-admin {
+  background-color: #831843;
+  color: #fbcfe8;
+}
+
+[data-theme='dark'] .role-agent {
+  background-color: #0c4a6e;
+  color: #bae6fd;
+}
+
+[data-theme='dark'] .role-manager {
+  background-color: #78350f;
+  color: #fde68a;
+}
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.modal-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}

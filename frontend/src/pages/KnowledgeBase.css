@@ -1,0 +1,119 @@
+.knowledge-base-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.kb-search-card {
+  padding: 1rem;
+}
+
+.kb-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.category-item:hover {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.category-item.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.category-badge {
+  font-size: 0.75rem;
+  background-color: var(--bg-input);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1.25rem;
+}
+
+.article-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 1.25rem;
+}
+
+.article-title {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.article-snippet {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.article-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.no-results-card {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.form-error {
+  color: var(--priority-high-text);
+  background-color: var(--priority-high-bg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 850px) {
+  .kb-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .article-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}

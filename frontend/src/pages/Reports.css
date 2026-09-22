@@ -1,0 +1,171 @@
+.time-range-picker select {
+  min-width: 150px;
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-placeholder {
+  height: 220px;
+  display: flex;
+  align-items: flex-end;
+  padding-top: 1rem;
+}
+
+.bar-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  height: 100%;
+  gap: 1rem;
+}
+
+.bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.bar-group span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.bar {
+  width: 100%;
+  max-width: 36px;
+  background-color: var(--primary);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: opacity 0.2s ease;
+}
+
+.bar:hover {
+  opacity: 0.85;
+}
+
+.stat-card {
+    margin-top: 1rem;
+}
+.status-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.status-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.status-count {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: var(--bg-hover);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.progress-fill.resolved {
+  background-color: #10b981;
+}
+
+.progress-fill.progress {
+  background-color: #f59e0b;
+}
+
+.progress-fill.open {
+  background-color: #ef4444;
+}
+
+.reports-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.reports-table th,
+.reports-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.reports-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  background-color: var(--bg-hover);
+}
+
+.report-card {
+    margin-top: 1rem;
+}
+.agent-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.agent-name {
+  font-weight: 500;
+}
+
+.rating-cell {
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .time-range-picker,
+  .time-range-picker select {
+    width: 100%;
+  }
+
+  .chart-placeholder {
+    height: 180px;
+  }
+
+  .bar-chart {
+    gap: 0.35rem;
+  }
+}
