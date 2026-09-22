@@ -1,0 +1,19 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  text-transform: capitalize;
+}
+
+.badge-status-open { background-color: var(--status-open-bg); color: var(--status-open-text); }
+.badge-status-in-progress { background-color: var(--status-progress-bg); color: var(--status-progress-text); }
+.badge-status-resolved { background-color: var(--status-resolved-bg); color: var(--status-resolved-text); }
+.badge-status-closed { background-color: var(--status-closed-bg); color: var(--status-closed-text); }
+
+.badge-priority-high { background-color: var(--priority-high-bg); color: var(--priority-high-text); }
+.badge-priority-medium { background-color: var(--priority-medium-bg); color: var(--priority-medium-text); }
+.badge-priority-low { background-color: var(--priority-low-bg); color: var(--priority-low-text); }

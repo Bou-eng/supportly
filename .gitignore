@@ -1,0 +1,11 @@
+# Ignore all node_modules at any directory depth
+node_modules/
+**/node_modules/
+
+# Environment files
+.env
+*.env
+
+# Build outputs
+dist/
+build/

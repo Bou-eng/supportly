@@ -1,0 +1,104 @@
+/* Supportly Design System Variables */
+:root {
+  /* Brand Colors */
+  --primary: #1d6bf3;
+  --primary-hover: #1557c0;
+  --primary-light: #eef4ff;
+  --sidebar-bg: #0b1329;
+  --sidebar-hover: #172342;
+  --sidebar-active: #1d2d54;
+  --sidebar-text: #8e9bb0;
+  --sidebar-text-active: #ffffff;
+
+  /* Neutral Light Theme */
+  --bg-main: #f4f7fb;
+  --bg-card: #ffffff;
+  --bg-input: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Status Colors (Badges) */
+  --status-open-bg: #e0f2fe;
+  --status-open-text: #0284c7;
+  --status-progress-bg: #e0e7ff;
+  --status-progress-text: #4338ca;
+  --status-resolved-bg: #d1fae5;
+  --status-resolved-text: #059669;
+  --status-closed-bg: #f1f5f9;
+  --status-closed-text: #475569;
+
+  /* Priority Colors */
+  --priority-high-bg: #fee2e2;
+  --priority-high-text: #dc2626;
+  --priority-medium-bg: #fef3c7;
+  --priority-medium-text: #d97706;
+  --priority-low-bg: #e0f2fe;
+  --priority-low-text: #0284c7;
+
+  /* Shapes & Shadows */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark Theme Overrides */
+[data-theme='dark'] {
+  --bg-main: #0b0f19;
+  --bg-card: #151c2c;
+  --bg-input: #1e293b;
+  --border-color: #27354a;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --primary-light: #1e293b;
+
+  --status-open-bg: #0369a1;
+  --status-open-text: #e0f2fe;
+  --status-progress-bg: #3730a3;
+  --status-progress-text: #e0e7ff;
+  --status-resolved-bg: #047857;
+  --status-resolved-text: #d1fae5;
+  --status-closed-bg: #334155;
+  --status-closed-text: #cbd5e1;
+
+  --priority-high-bg: #991b1b;
+  --priority-high-text: #fee2e2;
+  --priority-medium-bg: #92400e;
+  --priority-medium-text: #fef3c7;
+  --priority-low-bg: #075985;
+  --priority-low-text: #e0f2fe;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
