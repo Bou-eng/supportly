@@ -66,14 +66,15 @@ app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/settings', settingsRoutes);
 
+app.get('/', (request, response) => {
+    response.send('API is running...');
+});
 // Global Error Handling Middlewares (MUST be placed after all routes)
 app.use(notFound);
 app.use(errorHandler);
 
 
-app.get('/', (request, response) => {
-    response.send('APIis running...');
-});
+
 
 const startServer = async () => {
     try {
