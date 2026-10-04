@@ -97,4 +97,3 @@ if (require.main === module) {
 
 module.exports = { app, startServer };
 
-//Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYWZlNzRmYzVjOWE0NDJmMDM2ZTFjYSIsImlhdCI6MTc4OTkxNjAzOSwiZXhwIjoxNzkyNTA4MDM5fQ._CxyDTcX7n9CXR-TNA-jldhCepuoEqKCUFQY7mI9jGc

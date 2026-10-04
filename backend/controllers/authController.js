@@ -14,8 +14,8 @@ const toAuthUser = (user) => ({
 const setAuthCookie = (res, user) => {
   res.cookie(COOKIE_NAME, generateToken(user._id), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 };
@@ -113,7 +113,7 @@ const getMe = async (req, res) => {
 };
 
 const logoutUser = (req, res) => {
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'none', secure: true });
   res.json({ message: 'Logged out successfully' });
 };
 
