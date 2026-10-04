@@ -12,10 +12,12 @@ const toAuthUser = (user) => ({
 });
 
 const setAuthCookie = (res, user) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   res.cookie(COOKIE_NAME, generateToken(user._id), {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 };
@@ -113,7 +115,14 @@ const getMe = async (req, res) => {
 };
 
 const logoutUser = (req, res) => {
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'none', secure: true });
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+  });
+
   res.json({ message: 'Logged out successfully' });
 };
 
