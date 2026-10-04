@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 const Counter = require('./Counter');
+const {
+  TICKET_STATUS_VALUES,
+  TICKET_PRIORITY_VALUES,
+} = require('../constants/apiConstants');
 
 const ticketSchema = new mongoose.Schema(
   {
@@ -21,19 +25,26 @@ const ticketSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please add a description of the issue'],
     },
-    category: {
+    contactEmail: {
       type: String,
-      enum: ['Technical', 'Billing', 'Account Access', 'General Inquiry'],
-      default: 'General Inquiry',
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Please add a valid contact email'],
+      default: null,
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
     },
     status: {
       type: String,
-      enum: ['open', 'in-progress', 'resolved', 'closed'],
+      enum: TICKET_STATUS_VALUES,
       default: 'open',
     },
     priority: {
       type: String,
-      enum: ['low', 'medium', 'high', 'urgent'],
+      enum: TICKET_PRIORITY_VALUES,
       default: 'medium',
     },
     assignedTo: {
@@ -42,7 +53,25 @@ const ticketSchema = new mongoose.Schema(
       default: null,
     },
     team: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
+      default: null,
+    },
+    tags: {
+      type: [String],
+      default: [],
+      set: (tags) => [...new Set((tags || []).map((tag) => tag.trim()).filter(Boolean))],
+    },
+    resolvedAt: {
+      type: Date,
+      default: null,
+    },
+    closedAt: {
+      type: Date,
+      default: null,
+    },
+    slaDueAt: {
+      type: Date,
       default: null,
     },
   },

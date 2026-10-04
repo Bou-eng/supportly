@@ -3,18 +3,24 @@ import { useTranslation } from 'react-i18next';
 import './LanguageToggle.css';
 
 const LanguageToggle = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const languages = [
+    { code: 'en', label: 'EN' },
+    { code: 'tr', label: 'TR' },
+  ];
+  const currentLanguage = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0];
+  const currentIndex = languages.findIndex((language) => language.code === currentLanguage);
+  const activeLanguage = languages[currentIndex] || languages[0];
 
   const toggleLanguage = () => {
-    const nextLang = i18n.language.startsWith('tr') ? 'en' : 'tr';
-    i18n.changeLanguage(nextLang);
+    const nextLanguage = languages[(currentIndex + 1) % languages.length] || languages[0];
+    i18n.changeLanguage(nextLanguage.code);
   };
 
-  const isTurkish = i18n.language.startsWith('tr');
-
   return (
-    <button className="lang-toggle-btn" onClick={toggleLanguage} title="Change Language">
-      <span className="lang-flag">{isTurkish ? '🇹🇷 TR' : '🇬🇧 EN'}</span>
+    <button className="lang-toggle-btn" onClick={toggleLanguage} title={t('common.changeLanguage')}>
+      <span className="lang-flag">{activeLanguage.label}</span>
     </button>
   );
 };

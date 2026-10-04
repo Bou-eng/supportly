@@ -5,6 +5,7 @@
     "light": "Açık",
     "dark": "Karanlık",
     "language": "Dil",
+    "changeLanguage": "Dili değiştir",
     "submit": "Gönder",
     "cancel": "İptal",
     "save": "Kaydet",
@@ -30,7 +31,6 @@
     "passwordLabel": "Şifre",
     "passwordPlaceholder": "Şifrenizi girin",
     "rememberMe": "Beni hatırla",
-    "forgotPassword": "Şifrenizi mi unuttunuz?",
     "noAccount": "Hesabınız yok mu?",
     "createOne": "Hesap oluşturun",
     "loginShowcaseTitleLineOne": "Daha mutlu müşteriler.",
@@ -49,15 +49,6 @@
     "fullNameLabel": "Ad Soyad",
     "fullNamePlaceholder": "Adınız Soyadınız",
     "alreadyHaveAccount": "Zaten hesabınız var mı?",
-    "recoveryTitle": "Hesap Kurtarma",
-    "recoveryDescription": "Endişelenmeyin, şifrenizi güvenli bir şekilde sıfırlamanız için size talimatlar göndereceğiz.",
-    "recoveryBadgeOne": "Güvenli bağlantı",
-    "recoveryBadgeTwo": "24 saat geçerli",
-    "recoverySubtitle": "Şifre sıfırlama bağlantısı almak için kayıtlı e-posta adresinizi girin.",
-    "resetLinkSent": "<email>{{email}}</email> için bir hesap varsa, şifre sıfırlama bağlantısı gönderildi.",
-    "backTo": "Geri dön:",
-    "sendResetLink": "Sıfırlama Bağlantısı Gönder",
-    "rememberedPassword": "Şifrenizi hatırladınız mı?",
     "signInError": "Giriş yapılamadı. Bilgilerinizi kontrol edin.",
     "registerError": "Hesap oluşturulamadı.",
     "emailPasswordRequired": "Lütfen e-posta adresinizi ve şifrenizi girin.",
@@ -80,6 +71,14 @@
     "medium": "Orta",
     "low": "Düşük"
   },
+  "categories": {
+    "generalInquiry": "Genel Soru",
+    "billingSubscription": "Faturalandırma ve Abonelik",
+    "domainDns": "Alan Adı ve DNS",
+    "apiWebhooks": "API ve Webhook'lar",
+    "bugReport": "Hata Bildirimi",
+    "featureRequest": "Özellik İsteği"
+  },
   "header": {
     "searchPlaceholder": "Biletler, kullanıcılar veya makalelerde ara...",
     "notifications": "Bildirimler"
@@ -87,7 +86,13 @@
   "promo": {
     "title": "Daha iyi destek, mutlu insanlar",
     "text": "Supportly ekibinize talepleri hızla çözme imkanı tanır.",
-    "button": "Daha Fazla Bilgi"
+    "button": "Daha Fazla Bilgi",
+    "modalTitle": "Supportly'ye genel bakış",
+    "modalLead": "Talepleri, görüşmeleri ve ekip kararlarını daha hızlı çözüm için tek bir sakin çalışma alanında birleştirin.",
+    "featureFast": "Talepleri daha hızlı çözün",
+    "featureVisibility": "Her güncellemeyi görünür tutun",
+    "featureInsights": "Desteği verilerle geliştirin",
+    "close": "Anladım"
   }, 
   "overview": {
     "title": "Genel Bakış",
@@ -144,7 +149,29 @@
     "placeholderNote": "İç notunuzu yazın (yalnızca ekip üyeleri görebilir)...",
     "sendReply": "Yanıt Gönder",
     "saveNote": "İç Not Ekle",
-    "updateDetails": "Talep Detayları"
+    "updateDetails": "Talep Detayları",
+    "loading": "Talep yükleniyor...",
+    "noMessages": "Henüz mesaj yok.",
+    "activityHistory": "Aktivite geçmişi",
+    "noActivity": "Henüz aktivite yok.",
+    "system": "Sistem",
+    "updated": "güncellendi",
+    "assigneePlaceholder": "Atanan kişi ID",
+    "tags": "Etiketler",
+    "addTag": "Etiket ekle",
+    "team": "Ekip",
+    "errors": {
+      "unauthorized": "Bu talebi görüntüleme yetkiniz yok.",
+      "load": "Talep yüklenemedi.",
+      "notFound": "Talep bulunamadı.",
+      "updateStatus": "Durum güncellenemedi.",
+      "updatePriority": "Öncelik güncellenemedi.",
+      "updateTags": "Etiketler güncellenemedi.",
+      "sendReply": "Yanıt gönderilemedi.",
+      "assign": "Talep atanamadı.",
+      "categoryNotFound": "Kategori bulunamadı.",
+      "categoryCast": "Bu talepte geçersiz bir kategori değeri var. Backend kategori adı değil kategori ID'si bekliyor."
+    }
   }, 
   "createTicket": {
     "title": "Yeni Talep Oluştur",
@@ -161,7 +188,14 @@
     "attachmentsLabel": "Ekler (İsteğe Bağlı)",
     "dropzoneText": "Ekran görüntüleri veya günlükler yüklemek için buraya tıklayın veya dosyaları sürükleyin",
     "submitBtn": "Talebi Gönder",
-    "cancelBtn": "İptal"
+    "cancelBtn": "İptal",
+    "successMsg": "Talep başarıyla oluşturuldu! Talep listesine yönlendiriliyorsunuz...",
+    "errors": {
+      "createFailed": "Talep oluşturulamadı.",
+      "categoriesLoad": "Kategoriler yüklenemedi. Lütfen tekrar deneyin.",
+      "categoryNotFound": "Bu kategori bulunamadı.",
+      "categoryCast": "Seçilen kategori kaydedilemedi çünkü backend kategori ID'si bekliyor."
+    }
   }, 
   "teamQueue": {
     "title": "Ekip Kuyruğu",

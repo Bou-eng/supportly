@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Input.css';
 
 const Input = ({
@@ -10,9 +10,13 @@ const Input = ({
   placeholder = '',
   error = '',
   required = false,
+  showPasswordToggle = false,
   className = '',
   ...props
 }) => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const inputType = showPasswordToggle && type === 'password' && passwordVisible ? 'text' : type;
+
   return (
     <div className={`input-group ${className}`}>
       {label && (
@@ -20,16 +24,27 @@ const Input = ({
           {label} {required && <span className="required-star">*</span>}
         </label>
       )}
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`input-field ${error ? 'input-error' : ''}`}
-        {...props}
-      />
+      <div className="input-control">
+        <input
+          id={name}
+          name={name}
+          type={inputType}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`input-field ${showPasswordToggle ? 'input-with-toggle' : ''} ${error ? 'input-error' : ''}`}
+          {...props}
+        />
+        {showPasswordToggle && type === 'password' && <button
+          type="button"
+          className="password-toggle"
+          onClick={() => setPasswordVisible((visible) => !visible)}
+          aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+          title={passwordVisible ? 'Hide password' : 'Show password'}
+        >
+          {passwordVisible ? '🙈' : '👁️'}
+        </button>}
+      </div>
       {error && <span className="error-text">{error}</span>}
     </div>
   );

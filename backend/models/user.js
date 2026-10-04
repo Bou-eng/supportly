@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { USER_ROLE_VALUES } = require('../constants/apiConstants');
 
 const userSchema = mongoose.Schema(
 {
@@ -20,12 +21,13 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['customer', 'agent', 'manager', 'admin'],
+      enum: USER_ROLE_VALUES,
       default: 'customer', // Default role for new signups
     },
     team: {
-      type: String,
-      default: null, // e.g., "Technical Support", "Billing"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
+      default: null,
     },
     avatar: {
       type: String,
@@ -35,6 +37,21 @@ const userSchema = mongoose.Schema(
       type: String,
       enum: ['active', 'inactive'],
       default: 'active',
+    },
+    preferredLanguage: {
+      type: String,
+      enum: ['en', 'tr'],
+      default: 'en',
+    },
+    notificationPreferences: {
+      ticketAssigned: { type: Boolean, default: true },
+      ticketUpdated: { type: Boolean, default: true },
+      weeklyReport: { type: Boolean, default: false },
+    },
+    workspace: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Workspace',
+      default: null,
     },
 }, 
     {

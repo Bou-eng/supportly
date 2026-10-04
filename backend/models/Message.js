@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
 
+const attachmentSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  publicId: { type: String, required: true },
+  resourceType: { type: String, required: true },
+  format: { type: String, default: null },
+  mimeType: { type: String, required: true },
+  bytes: { type: Number, required: true },
+  width: { type: Number, default: null },
+  height: { type: Number, default: null },
+}, { _id: true });
+
 const messageSchema = new mongoose.Schema(
   {
     ticket: {
@@ -20,6 +31,10 @@ const messageSchema = new mongoose.Schema(
     content: {
       type: String,
       required: [true, 'Please add message content'],
+    },
+    attachments: {
+      type: [attachmentSchema],
+      default: [],
     },
   },
   {

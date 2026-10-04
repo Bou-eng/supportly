@@ -25,6 +25,42 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.input-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-control .input-field {
+  width: 100%;
+}
+
+.input-field.input-with-toggle {
+  padding-right: 2.75rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  background: var(--primary-light);
+  outline: none;
+}
+
 .input-field:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);

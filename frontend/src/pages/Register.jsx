@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -7,15 +7,18 @@ import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import LanguageToggle from '../components/common/LanguageToggle';
 import './AuthPages.css';
+import { useActionLock } from '../hooks/useActionLock';
 
 const Register = () => {
   const { t } = useTranslation();
   const { register } = useAuth();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { locked: submitting, runOnce: runSubmitOnce } = useActionLock();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,14 +26,13 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      if (register) {
-        await register(formData.name, formData.email, formData.password);
-      }
-    } catch (err) {
+    await runSubmitOnce(async () => {
+      setError('');
+      setLoading(true);
+      try {
+        await register(formData);
+        navigate('/overview', { replace: true });
+      } catch (err) {
       const serverMessage = err.response?.data?.message;
       const errorKey = {
         'Please provide all required fields': 'auth.requiredFields',
@@ -39,10 +41,9 @@ const Register = () => {
         'Too many login/registration attempts from this IP, please try again after 15 minutes': 'auth.tooManyAttempts',
       }[serverMessage];
 
-      setError(errorKey || 'auth.registerError');
-    } finally {
-      setLoading(false);
-    }
+        setError(errorKey || 'auth.registerError');
+      } finally { setLoading(false); }
+    });
   };
 
   return (
@@ -110,6 +111,7 @@ const Register = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder={t('auth.passwordPlaceholder')}
+                showPasswordToggle
                 required
               />
 

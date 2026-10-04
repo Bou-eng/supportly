@@ -11,42 +11,39 @@ export const AuthProvider = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem('token') || null;
-  });
-
   const [loading, setLoading] = useState(true);
 
   // Validate token on app start or page refresh
   useEffect(() => {
     const verifyUser = async () => {
-      if (token) {
-        try {
-          const currentUserData = await authApi.getCurrentUser();
-          setUser(currentUserData);
-          localStorage.setItem('user', JSON.stringify(currentUserData));
-        } catch (error) {
-          console.error('Session expired or invalid token:', error);
-          logout();
-        }
-      } else {
+      try {
+        const currentUserData = await authApi.getCurrentUser();
+        const currentUser = currentUserData.user || currentUserData;
+        setUser(currentUser);
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      } catch (error) {
         setUser(null);
+        localStorage.removeItem('user');
       }
       setLoading(false);
     };
 
     verifyUser();
-  }, [token]);
+
+    const handleSessionExpired = () => {
+      setUser(null);
+      setLoading(false);
+    };
+    window.addEventListener('auth:expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:expired', handleSessionExpired);
+  }, []);
 
   // Login handler
   const login = async (credentials) => {
     const data = await authApi.login(credentials);
     
     // Save token and user info
-    localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    
-    setToken(data.token);
     setUser(data.user);
     return data;
   };
@@ -56,31 +53,35 @@ export const AuthProvider = ({ children }) => {
     const data = await authApi.register(userData);
     
     // Auto-login upon registration
-    localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-    
-    setToken(data.token);
     setUser(data.user);
     return data;
   };
 
   // Logout handler
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      localStorage.removeItem('user');
+      setUser(null);
+    }
+  };
+
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const value = {
     user,
-    token,
     loading,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!user,
     role: user?.role || null,
     login,
     register,
     logout,
+    updateUser,
   };
 
   return (

@@ -15,6 +15,7 @@
 }
 
 .header-search {
+  position: relative;
   display: flex;
   align-items: center;
   background-color: var(--bg-input);
@@ -24,6 +25,11 @@
   width: min(320px, 40%);
   min-width: 0;
 }
+
+.header-search-results { position: absolute; top: calc(100% + 0.5rem); left: 0; width: min(420px, 80vw); padding: 0.35rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 110; }
+.header-search-results button { display: block; width: 100%; padding: 0.6rem 0.7rem; border: 0; background: transparent; color: var(--text-primary); text-align: left; cursor: pointer; }
+.header-search-results button:hover { background: var(--primary-light); }
+.header-search-results p { padding: 0.6rem 0.7rem; margin: 0; color: var(--text-secondary); font-size: 0.8rem; }
 
 .search-icon {
   margin-right: 0.5rem;
@@ -63,7 +69,34 @@
   height: 8px;
   background-color: #dc2626;
   border-radius: 50%;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  color: #fff;
+  font-size: 0.65rem;
+  line-height: 16px;
+  text-align: center;
 }
+
+.notification-panel {
+  position: absolute;
+  top: 58px;
+  right: 2rem;
+  width: min(360px, calc(100vw - 2rem));
+  max-height: 420px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+}
+
+.notification-panel-header { display: flex; justify-content: space-between; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); }
+.notification-panel-header button { border: 0; background: transparent; color: var(--primary); cursor: pointer; }
+.notification-item { display: flex; flex-direction: column; gap: 0.25rem; width: 100%; padding: 0.75rem 1rem; border: 0; border-bottom: 1px solid var(--border-color); background: transparent; color: var(--text-primary); text-align: left; cursor: pointer; }
+.notification-item.unread { background: var(--primary-light); }
+.notification-item small, .notification-empty { color: var(--text-secondary); }
 
 .user-profile {
   display: flex;

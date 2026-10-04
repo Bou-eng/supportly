@@ -2,6 +2,11 @@
 node_modules/
 **/node_modules/
 
+# Local editor and tool state
+.DS_Store
+.vite/
+**/.vite/
+
 # Environment files
 .env
 *.env
@@ -9,3 +14,6 @@ node_modules/
 # Build outputs
 dist/
 build/
+
+# Local test and coverage output
+coverage/

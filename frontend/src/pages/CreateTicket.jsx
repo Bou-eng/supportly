@@ -1,27 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import { TICKET_PRIORITIES } from '../constants/apiConstants';
+import { ticketApi } from '../services/ticketApi';
+import { categoryApi } from '../services/categoryApi';
+import { useActionLock } from '../hooks/useActionLock';
 import './CreateTicket.css';
 
-const CATEGORIES = [
-  'General Inquiry',
-  'Billing & Subscription',
-  'Domain & DNS',
-  'API & Webhooks',
-  'Bug Report',
-  'Feature Request'
-];
+const getCreateTicketErrorKey = (requestError) => {
+  const serverMessage = requestError.response?.data?.message || '';
+
+  if (serverMessage === 'Category not found') {
+    return 'createTicket.errors.categoryNotFound';
+  }
+
+  if (
+    serverMessage.includes('Ticket validation failed')
+    && serverMessage.includes('category')
+    && serverMessage.includes('Cast to ObjectId')
+  ) {
+    return 'createTicket.errors.categoryCast';
+  }
+
+  return 'createTicket.errors.createFailed';
+};
 
 const CreateTicket = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    subject: '',
+    title: '',
     category: '',
     contactEmail: '',
     priority: 'medium',
@@ -30,6 +43,18 @@ const CreateTicket = () => {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const { locked: submitting, runOnce: runSubmitOnce } = useActionLock();
+
+  useEffect(() => {
+    categoryApi.list()
+      .then(setCategories)
+      .catch(() => setError('createTicket.errors.categoriesLoad'))
+      .finally(() => setCategoriesLoading(false));
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,18 +64,27 @@ const CreateTicket = () => {
     setFormData({ ...formData, priority: p });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Simulate API request
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/tickets');
-      }, 1200);
-    }, 800);
+    await runSubmitOnce(async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const createdTicket = await ticketApi.create({ title: formData.title, description: formData.description, contactEmail: formData.contactEmail, category: formData.category, priority: formData.priority });
+        if (attachments.length > 0) {
+          const message = await ticketApi.reply(createdTicket.ticketNumber || createdTicket._id, 'Attachments added to this ticket.', 'public', attachments);
+          if (message.attachments?.length !== attachments.length) {
+            throw new Error('The selected attachments were not uploaded.');
+          }
+        }
+        setSuccess(true);
+        setTimeout(() => navigate('/tickets'), 1200);
+      } catch (requestError) {
+        setError(getCreateTicketErrorKey(requestError));
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   return (
@@ -65,14 +99,15 @@ const CreateTicket = () => {
       <Card className="form-card">
         {success ? (
           <div className="success-banner">
-            ✅ Ticket created successfully! Redirecting to ticket list...
+            ✅ {t('createTicket.successMsg')}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="ticket-form">
+            {error && <div className="auth-error-banner">{t(error)}</div>}
             <Input
               label={t('createTicket.subjectLabel')}
-              name="subject"
-              value={formData.subject}
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               placeholder={t('createTicket.subjectPlaceholder')}
               required
@@ -91,9 +126,9 @@ const CreateTicket = () => {
                   <option value="" disabled>
                     {t('createTicket.categoryPlaceholder')}
                   </option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
                     </option>
                   ))}
                 </select>
@@ -114,7 +149,7 @@ const CreateTicket = () => {
             <div className="form-group">
               <label className="form-label">{t('createTicket.priorityLabel')}</label>
               <div className="priority-selector">
-                {['low', 'medium', 'high'].map((p) => (
+                {[TICKET_PRIORITIES.LOW, TICKET_PRIORITIES.MEDIUM, TICKET_PRIORITIES.HIGH].map((p) => (
                   <button
                     key={p}
                     type="button"
@@ -141,13 +176,14 @@ const CreateTicket = () => {
               />
             </div>
 
-            {/* Mock Attachment Upload */}
             <div className="form-group">
               <label className="form-label">{t('createTicket.attachmentsLabel')}</label>
-              <div className="dropzone-area">
+              <label className="dropzone-area">
                 <span className="dropzone-icon">📁</span>
                 <p>{t('createTicket.dropzoneText')}</p>
-              </div>
+                <input type="file" multiple accept="image/jpeg,image/png,image/gif,application/pdf,text/plain,text/csv" onChange={(event) => setAttachments(Array.from(event.target.files || []))} hidden />
+                {attachments.length > 0 && <small>{attachments.length} attachment(s) selected</small>}
+              </label>
             </div>
 
             {/* Actions */}
@@ -159,7 +195,7 @@ const CreateTicket = () => {
               >
                 {t('createTicket.cancelBtn')}
               </Button>
-              <Button type="submit" variant="primary" isLoading={loading}>
+              <Button type="submit" variant="primary" isLoading={loading || submitting} disabled={submitting}>
                 {t('createTicket.submitBtn')} →
               </Button>
             </div>

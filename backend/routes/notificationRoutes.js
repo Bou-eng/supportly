@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { getMyNotifications,
-        markAsRead 
+        markAsRead,
+        markAllAsRead,
 } = require('../controllers/notificationController');
 const createNotification = require('../utils/createNotification');
 
@@ -33,6 +34,7 @@ router.post('/test', async (req, res) => {
 
 
 router.get('/', getMyNotifications);
+router.patch('/read-all', markAllAsRead);
 router.patch('/:id/read', markAsRead);
 
 module.exports = router;

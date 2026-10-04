@@ -5,6 +5,7 @@
     "light": "Light",
     "dark": "Dark",
     "language": "Language",
+    "changeLanguage": "Change language",
     "submit": "Submit",
     "cancel": "Cancel",
     "save": "Save",
@@ -30,7 +31,6 @@
     "passwordLabel": "Password",
     "passwordPlaceholder": "Enter your password",
     "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
     "createOne": "Create one",
     "loginShowcaseTitleLineOne": "Happier customers.",
@@ -49,15 +49,6 @@
     "fullNameLabel": "Full Name",
     "fullNamePlaceholder": "John Doe",
     "alreadyHaveAccount": "Already have an account?",
-    "recoveryTitle": "Account Recovery",
-    "recoveryDescription": "Don't worry, we'll send you instructions to safely reset your password.",
-    "recoveryBadgeOne": "Secure link",
-    "recoveryBadgeTwo": "Valid for 24h",
-    "recoverySubtitle": "Enter your registered email address to receive a password reset link.",
-    "resetLinkSent": "If an account exists for <email>{{email}}</email>, a reset link has been sent.",
-    "backTo": "Back to",
-    "sendResetLink": "Send Reset Link",
-    "rememberedPassword": "Remembered your password?",
     "signInError": "Failed to sign in. Check your credentials.",
     "registerError": "Failed to register account.",
     "emailPasswordRequired": "Please provide your email and password.",
@@ -80,6 +71,14 @@
     "medium": "Medium",
     "low": "Low"
   },
+  "categories": {
+    "generalInquiry": "General Inquiry",
+    "billingSubscription": "Billing & Subscription",
+    "domainDns": "Domain & DNS",
+    "apiWebhooks": "API & Webhooks",
+    "bugReport": "Bug Report",
+    "featureRequest": "Feature Request"
+  },
   "header": {
     "searchPlaceholder": "Search tickets, users, articles...",
     "notifications": "Notifications"
@@ -87,7 +86,13 @@
   "promo": {
     "title": "Better support, happier people",
     "text": "Supportly gives your team tools to resolve tickets quickly.",
-    "button": "Learn More"
+    "button": "Learn More",
+    "modalTitle": "Supportly at a glance",
+    "modalLead": "Bring tickets, conversations, and team decisions into one calm workspace built for faster resolution.",
+    "featureFast": "Resolve requests faster",
+    "featureVisibility": "Keep every update visible",
+    "featureInsights": "Use data to improve support",
+    "close": "Got it"
   },
   "overview": {
     "title": "Overview",
@@ -144,7 +149,29 @@
     "placeholderNote": "Type an internal note (only visible to team members)...",
     "sendReply": "Send Reply",
     "saveNote": "Add Internal Note",
-    "updateDetails": "Ticket Details"
+    "updateDetails": "Ticket Details",
+    "loading": "Loading ticket...",
+    "noMessages": "No messages yet.",
+    "activityHistory": "Activity history",
+    "noActivity": "No activity yet.",
+    "system": "System",
+    "updated": "updated",
+    "assigneePlaceholder": "Assignee ID",
+    "tags": "Tags",
+    "addTag": "Add a tag",
+    "team": "Team",
+    "errors": {
+      "unauthorized": "You are not authorized to view this ticket.",
+      "load": "Unable to load ticket.",
+      "notFound": "Ticket not found.",
+      "updateStatus": "Unable to update status.",
+      "updatePriority": "Unable to update priority.",
+      "updateTags": "Unable to update tags.",
+      "sendReply": "Unable to send reply.",
+      "assign": "Unable to assign ticket.",
+      "categoryNotFound": "Category not found.",
+      "categoryCast": "This ticket has an invalid category value. The backend expects a category ID, not a category name."
+    }
   }, 
   "createTicket": {
     "title": "Submit a New Ticket",
@@ -161,7 +188,14 @@
     "attachmentsLabel": "Attachments (Optional)",
     "dropzoneText": "Click or drag files here to upload screenshots or logs",
     "submitBtn": "Submit Ticket",
-    "cancelBtn": "Cancel"
+    "cancelBtn": "Cancel",
+    "successMsg": "Ticket created successfully! Redirecting to ticket list...",
+    "errors": {
+      "createFailed": "Unable to create ticket.",
+      "categoriesLoad": "Unable to load categories. Please try again.",
+      "categoryNotFound": "That category was not found.",
+      "categoryCast": "The selected category could not be saved because the backend expects a category ID."
+    }
   }, 
   "teamQueue": {
     "title": "Team Queue",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -7,15 +7,19 @@ import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import LanguageToggle from '../components/common/LanguageToggle';
 import './AuthPages.css';
+import { useActionLock } from '../hooks/useActionLock';
 
 const Login = () => {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { locked: submitting, runOnce: runSubmitOnce } = useActionLock();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,12 +27,13 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(formData.email, formData.password);
-    } catch (err) {
+    await runSubmitOnce(async () => {
+      setError('');
+      setLoading(true);
+      try {
+        await login(formData);
+        navigate(location.state?.from?.pathname || '/overview', { replace: true });
+      } catch (err) {
       const serverMessage = err.response?.data?.message;
       const errorKey = {
         'Please provide email and password': 'auth.emailPasswordRequired',
@@ -36,10 +41,9 @@ const Login = () => {
         'Too many login/registration attempts from this IP, please try again after 15 minutes': 'auth.tooManyAttempts',
       }[serverMessage];
 
-      setError(errorKey || 'auth.signInError');
-    } finally {
-      setLoading(false);
-    }
+        setError(errorKey || 'auth.signInError');
+      } finally { setLoading(false); }
+    });
   };
 
   return (
@@ -98,6 +102,7 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder={t('auth.passwordPlaceholder')}
+                showPasswordToggle
                 required
               />
 
@@ -106,7 +111,6 @@ const Login = () => {
                   <input type="checkbox" />
                   <span>{t('auth.rememberMe')}</span>
                 </label>
-                <Link to="/forgot-password" className="forgot-link">{t('auth.forgotPassword')}</Link>
               </div>
 
               <Button type="submit" variant="primary" isLoading={loading} className="w-full">

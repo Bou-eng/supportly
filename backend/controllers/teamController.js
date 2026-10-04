@@ -35,7 +35,35 @@ const createTeam = async (req, res) => {
   }
 };
 
+const updateTeam = async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const team = await Team.findByIdAndUpdate(
+      req.params.id,
+      { $set: { ...(name !== undefined && { name: name.trim() }), ...(description !== undefined && { description }) } },
+      { new: true, runValidators: true }
+    );
+
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    res.json(team);
+  } catch (error) {
+    res.status(error.code === 11000 ? 400 : 500).json({ message: error.code === 11000 ? 'Team already exists' : error.message });
+  }
+};
+
+const deleteTeam = async (req, res) => {
+  try {
+    const team = await Team.findByIdAndDelete(req.params.id);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    res.json({ message: 'Team deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getTeams,
   createTeam,
+  updateTeam,
+  deleteTeam,
 };

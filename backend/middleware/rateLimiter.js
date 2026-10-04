@@ -1,9 +1,13 @@
 const rateLimit = require('express-rate-limit');
 
+const isProduction = process.env.NODE_ENV === 'production';
+const authMaxAttempts = Number(process.env.AUTH_RATE_LIMIT_MAX)
+  || (isProduction ? 10 : 1000);
+
 // Strict rate limit for authentication (protects against brute-force)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login/register attempts per window
+  max: authMaxAttempts,
   message: {
     message: 'Too many login/registration attempts from this IP, please try again after 15 minutes',
   },
@@ -14,7 +18,7 @@ const authLimiter = rateLimit({
 // General API rate limit
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 200 requests per window
+  max: Number(process.env.API_RATE_LIMIT_MAX) || (isProduction ? 200 : 1000),
   message: {
     message: 'Too many requests from this IP, please try again later',
   },

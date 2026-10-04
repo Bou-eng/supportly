@@ -7,8 +7,16 @@ const notFound = (req, res, next) => {
 
 // Global error handler
 const errorHandler = (err, req, res, next) => {
+  req.log?.error({ err, statusCode: res.statusCode }, 'request failed');
   let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   let message = err.message;
+
+  if (err.name === 'MulterError') {
+    statusCode = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'Attachment exceeds the 10 MB limit'
+      : 'Invalid attachment type or too many attachments';
+  }
 
   // Handle invalid Mongoose ObjectId (e.g., /api/tickets/invalid-id)
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
@@ -32,8 +40,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   res.status(statusCode).json({
-    message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    message: process.env.NODE_ENV === 'production' && statusCode >= 500 ? 'Internal server error' : message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
   });
 };
 

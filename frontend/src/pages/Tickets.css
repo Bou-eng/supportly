@@ -120,3 +120,7 @@
   padding: 2.5rem 1rem !important;
   color: var(--text-secondary);
 }
+.pagination-controls span {
+  margin-right: 0.7rem;
+  margin-left: 0.7rem;
+}
