@@ -23,7 +23,7 @@ const populateTicketDocument = (ticket) => ticket.populate([
 
 const canAccessTicket = (ticket, user) => {
   const ticketOwner = ticket.user?._id || ticket.user;
-  if (user.role === 'admin' || ticketOwner?.toString() === user._id.toString()) {
+  if (user.role === 'admin' || user.role === 'manager' || ticketOwner?.toString() === user._id.toString()) {
     return true;
   }
 
