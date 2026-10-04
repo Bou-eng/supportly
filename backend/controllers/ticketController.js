@@ -101,30 +101,41 @@ const getTickets = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Build filter query object
-    let query = {};
+    const query = {};
+    const andConditions = [];
 
-    // 1. Role-based scoping: Customers only see their own tickets
+    // 1. Role-based scoping
     if (req.user.role === 'customer') {
       query.user = req.user._id;
     }
 
     if (req.user.role === 'agent' || req.user.role === 'manager') {
-      query.team = req.user.team?._id || req.user.team || null;
+      const userTeamId = req.user.team?._id || req.user.team;
+
+      if (userTeamId) {
+        // See tickets in their team OR tickets assigned to them
+        andConditions.push({
+          $or: [
+            { team: userTeamId },
+            { assignedTo: req.user._id },
+          ],
+        });
+      } else {
+        // No team assigned: fall back to only what's assigned to them
+        query.assignedTo = req.user._id;
+      }
     }
 
     // 2. Query parameter filters
-    if (req.query.status) {
-      query.status = req.query.status;
-    }
-
-    if (req.query.priority) {
-      query.priority = req.query.priority;
-    }
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.priority) query.priority = req.query.priority;
 
     if (req.query.search) {
       const escapedSearch = req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const search = new RegExp(escapedSearch, 'i');
-      query.$or = [{ ticketNumber: search }, { title: search }, { description: search }];
+      andConditions.push({
+        $or: [{ ticketNumber: search }, { title: search }, { description: search }],
+      });
     }
 
     if (req.query.category) {
@@ -133,6 +144,11 @@ const getTickets = async (req, res) => {
 
     if (req.query.team) {
       query.team = await resolveReference(Team, req.query.team);
+    }
+
+    // Merge accumulated $or conditions safely
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
     }
 
     // Execute query with pagination and total count
