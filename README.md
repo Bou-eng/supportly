@@ -620,6 +620,16 @@ Backend tests use:
 * Supertest
 * MongoDB Memory Server
 
+### Users Test
+
+You can test with the next users:
+
+```bash
+You can create a customer
+For testing agent: username => testagent@supportly.io , password=> Agent12345
+For testing manager: username => testmenager@supportly.io , password=> Menager12345
+```
+
 ---
 
 ## 🔄 Typical Support Workflow
