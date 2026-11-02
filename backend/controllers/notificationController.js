@@ -5,10 +5,12 @@ const Notification = require('../models/Notification');
 // @access  Private
 const getMyNotifications = async (req, res) => {
   try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
     const unread = await Notification.countDocuments({ recipient: req.user._id, isRead: false });
     const notifications = await Notification.find({ recipient: req.user._id })
       .populate('relatedTicket', 'ticketNumber title status')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(limit);
 
     res.json({ notifications, unread });
   } catch (error) {
@@ -43,9 +45,6 @@ const markAllAsRead = async (req, res) => {
   await Notification.updateMany({ recipient: req.user._id, isRead: false }, { $set: { isRead: true } });
   res.json({ message: 'Notifications marked as read' });
 };
-
-const createNotification = require('../utils/createNotification');
-
 
 module.exports = {
   getMyNotifications,

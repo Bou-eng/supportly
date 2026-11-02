@@ -4,6 +4,18 @@
   gap: 1.5rem;
 }
 
+.users-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.team-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem; }
+.team-summary-item { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.9rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary); }
+.team-summary-item span, .coming-soon-modal p { color: var(--text-secondary); font-size: 0.875rem; }
+.manager-team-notice { padding: 0.8rem; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); font-size: 0.85rem; }
+.protected-account-label { color: var(--text-muted); font-size: 0.78rem; font-weight: 600; }
+.coming-soon-modal { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.8rem; padding: 0.5rem 0 0.25rem; }
+.coming-soon-icon { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 18px; background: var(--primary-light); font-size: 1.8rem; }
+.coming-soon-label { padding: 0.25rem 0.65rem; border-radius: 999px; color: var(--primary); background: var(--primary-light); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; }
+.coming-soon-modal h4 { margin: 0; color: var(--text-primary); font-size: 1.15rem; }
+.coming-soon-modal p { max-width: 390px; margin: 0 0 0.5rem; line-height: 1.6; }
+
 .users-filter-card {
   padding: 1rem;
 }

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import './Input.css';
 
 const Input = ({
   label,
   type = 'text',
   name,
+  id,
   value,
   onChange,
   placeholder = '',
@@ -15,18 +16,20 @@ const Input = ({
   ...props
 }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const generatedId = useId();
+  const inputId = id || name || generatedId;
   const inputType = showPasswordToggle && type === 'password' && passwordVisible ? 'text' : type;
 
   return (
     <div className={`input-group ${className}`}>
       {label && (
-        <label htmlFor={name} className="input-label">
+        <label htmlFor={inputId} className="input-label">
           {label} {required && <span className="required-star">*</span>}
         </label>
       )}
       <div className="input-control">
         <input
-          id={name}
+          id={inputId}
           name={name}
           type={inputType}
           value={value}

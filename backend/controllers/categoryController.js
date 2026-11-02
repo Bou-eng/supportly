@@ -1,6 +1,8 @@
 const Category = require('../models/Category');
 const Team = require('../models/Team');
 const resolveReference = require('../utils/resolveReference');
+const Ticket = require('../models/ticket');
+const KnowledgeArticle = require('../models/KnowledgeArticle');
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -75,6 +77,13 @@ const updateCategory = async (req, res) => {
 
 const deleteCategory = async (req, res) => {
   try {
+    const inUse = await Promise.all([
+      Ticket.exists({ category: req.params.id }),
+      KnowledgeArticle.exists({ category: req.params.id }),
+    ]);
+    if (inUse.some(Boolean)) {
+      return res.status(409).json({ message: 'Category is in use and cannot be deleted' });
+    }
     const category = await Category.findByIdAndDelete(req.params.id);
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json({ message: 'Category deleted successfully' });

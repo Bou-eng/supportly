@@ -55,7 +55,7 @@ const getArticles = async (req, res) => {
 // @access  Public / Private
 const getArticleBySlug = async (req, res) => {
   try {
-    const article = await KnowledgeArticle.findOne({ slug: req.params.slug })
+    const article = await KnowledgeArticle.findOne({ slug: req.params.slug, published: true })
       .populate('category', 'name')
       .populate('author', 'name email');
 
@@ -98,7 +98,9 @@ const createArticle = async (req, res) => {
       content,
       category: categoryId,
       author: req.user._id,
-      published: published !== undefined ? published : true,
+      published: ['manager', 'admin'].includes(req.user.role)
+        ? (published !== undefined ? published : true)
+        : false,
     });
 
     res.status(201).json(await article.populate([

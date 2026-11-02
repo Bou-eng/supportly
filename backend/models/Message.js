@@ -30,7 +30,7 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: [true, 'Please add message content'],
+      default: '',
     },
     attachments: {
       type: [attachmentSchema],
@@ -41,5 +41,11 @@ const messageSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+messageSchema.pre('validate', function () {
+  if (!this.content?.trim() && this.attachments.length === 0) {
+    this.invalidate('content', 'Please add message content or an attachment');
+  }
+});
 
 module.exports = mongoose.model('Message', messageSchema);

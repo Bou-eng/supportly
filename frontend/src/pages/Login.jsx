@@ -106,13 +106,6 @@ const Login = () => {
                 required
               />
 
-              <div className="form-actions-row">
-                <label className="remember-me">
-                  <input type="checkbox" />
-                  <span>{t('auth.rememberMe')}</span>
-                </label>
-              </div>
-
               <Button type="submit" variant="primary" isLoading={loading} className="w-full">
                 {t('auth.signIn')} →
               </Button>

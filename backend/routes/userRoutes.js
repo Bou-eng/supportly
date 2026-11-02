@@ -1,19 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, updateUser, createInvitation, getInvitations, acceptInvitation } = require('../controllers/userController');
+const { getUsers, updateUser, getAssignableAgents } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
 const { USER_ROLES } = require('../constants/apiConstants');
 
-router.use(protect); // All routes require authentication
+const invitationUnavailable = (req, res) => res.status(501).json({
+  message: 'User invitations are not available yet',
+});
+
+router.post('/invitations/accept', invitationUnavailable);
+router.use(protect); // All remaining routes require authentication
+
+router.get('/assignable-agents', authorize(USER_ROLES.AGENT, USER_ROLES.MANAGER, USER_ROLES.ADMIN), getAssignableAgents);
 
 // GET /api/users - Accessible by managers and admins
 router.get('/', authorize(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getUsers);
 
-router.post('/invitations/accept', acceptInvitation);
 router.use(authorize(USER_ROLES.MANAGER, USER_ROLES.ADMIN));
-router.get('/invitations', getInvitations);
-router.post('/invitations', createInvitation);
+router.get('/invitations', invitationUnavailable);
+router.post('/invitations', invitationUnavailable);
 router.patch('/:id', updateUser);
 
 module.exports = router;

@@ -20,8 +20,17 @@ const TeamQueue = () => {
 
   const loadTickets = async () => {
     try {
-      const result = await ticketApi.list({ limit: 100 });
-      setTickets(result.tickets || []);
+      setError('');
+      const collected = [];
+      let nextPage = 1;
+      let totalPages = 1;
+      do {
+        const result = await ticketApi.list({ page: nextPage, limit: 100 });
+        collected.push(...(result.tickets || []));
+        totalPages = result.pages || 1;
+        nextPage += 1;
+      } while (nextPage <= totalPages);
+      setTickets(collected);
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Unable to load team queue.');
     } finally {

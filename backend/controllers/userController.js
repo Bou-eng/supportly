@@ -1,9 +1,6 @@
 const User = require('../models/user');
 const Team = require('../models/Team');
-const Invitation = require('../models/Invitation');
 const resolveReference = require('../utils/resolveReference');
-const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
 const { USER_ROLES } = require('../constants/apiConstants');
 
 // @desc    Get all users (with optional role/team query filters)
@@ -23,7 +20,14 @@ const getUsers = async (req, res) => {
     }
 
     if (req.user.role === USER_ROLES.MANAGER) {
-      query.team = req.user.team?._id || req.user.team;
+      const managerTeam = req.user.team?._id || req.user.team;
+      if (!managerTeam) return res.status(403).json({ message: 'Manager must belong to a team' });
+      delete query.team;
+      query.$or = [
+        { role: USER_ROLES.CUSTOMER },
+        { role: USER_ROLES.AGENT, team: managerTeam },
+      ];
+      if (role) query.$and = [{ role }];
     }
 
     const users = await User.find(query)
@@ -49,26 +53,48 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (req.user.role === USER_ROLES.MANAGER && user.team?.toString() !== (req.user.team?._id || req.user.team)?.toString()) {
-      return res.status(403).json({ message: 'Managers can only manage users in their team' });
+    if (user._id.toString() === req.user._id.toString() && (role || status === 'inactive')) {
+      return res.status(400).json({ message: 'You cannot change your own role or deactivate your own account' });
+    }
+    if (user.role === USER_ROLES.ADMIN) {
+      return res.status(403).json({ message: 'Administrator accounts cannot be changed from user management' });
     }
 
-    if (req.user.role === USER_ROLES.MANAGER && role && ![USER_ROLES.CUSTOMER, USER_ROLES.AGENT].includes(role)) {
-      return res.status(403).json({ message: 'Managers cannot assign this role' });
-    }
-
-    if (role) {
-      user.role = role;
-    }
-
-    if (team !== undefined) {
-      user.team = await resolveReference(Team, team);
-      if (team && !user.team) {
-        return res.status(400).json({ message: 'Team not found' });
+    if (req.user.role === USER_ROLES.MANAGER) {
+      const managerTeam = req.user.team?._id || req.user.team;
+      const isCustomer = user.role === USER_ROLES.CUSTOMER;
+      const isOwnAgent = user.role === USER_ROLES.AGENT && user.team?.toString() === managerTeam?.toString();
+      if (!managerTeam || (!isCustomer && !isOwnAgent)) {
+        return res.status(403).json({ message: 'Managers can only promote customers or manage agents in their team' });
       }
-      if (req.user.role === USER_ROLES.MANAGER && user.team?.toString() !== (req.user.team?._id || req.user.team)?.toString()) {
-        return res.status(403).json({ message: 'Managers can only assign users within their team' });
+      if (role !== undefined && role !== USER_ROLES.AGENT) {
+        return res.status(403).json({ message: 'Managers can only assign the agent role' });
       }
+      if (team !== undefined && team && team.toString() !== managerTeam.toString()) {
+        return res.status(403).json({ message: 'Managers can only assign agents to their own team' });
+      }
+      if (isCustomer && role !== USER_ROLES.AGENT) {
+        return res.status(400).json({ message: 'Select the agent role to promote this customer' });
+      }
+      user.role = USER_ROLES.AGENT;
+      user.team = managerTeam;
+    } else {
+      if (role !== undefined) {
+        if (![USER_ROLES.CUSTOMER, USER_ROLES.AGENT, USER_ROLES.MANAGER].includes(role)) {
+          return res.status(400).json({ message: 'Invalid user role' });
+        }
+        user.role = role;
+      }
+
+      if (team !== undefined) {
+        user.team = await resolveReference(Team, team);
+        if (team && !user.team) return res.status(400).json({ message: 'Team not found' });
+      }
+
+      if ([USER_ROLES.AGENT, USER_ROLES.MANAGER].includes(user.role) && !user.team) {
+        return res.status(400).json({ message: 'Agents and managers must belong to a team' });
+      }
+      if (user.role === USER_ROLES.CUSTOMER) user.team = null;
     }
 
     if (status !== undefined) {
@@ -88,62 +114,19 @@ const updateUser = async (req, res) => {
   }
 };
 
-const createInvitation = async (req, res) => {
-  try {
-    const email = req.body.email?.trim().toLowerCase();
-    const role = req.body.role || USER_ROLES.AGENT;
-    const teamId = await resolveReference(Team, req.body.team);
-
-    if (!email || !teamId) return res.status(400).json({ message: 'Email and team are required' });
-    if (req.user.role === USER_ROLES.MANAGER && role !== USER_ROLES.AGENT) {
-      return res.status(403).json({ message: 'Managers can only invite agents' });
-    }
-    if (req.user.role === USER_ROLES.MANAGER && teamId.toString() !== (req.user.team?._id || req.user.team)?.toString()) {
-      return res.status(403).json({ message: 'Managers can only invite agents to their team' });
-    }
-    if (await User.exists({ email })) return res.status(400).json({ message: 'User already exists' });
-
-    await Invitation.updateMany({ email, status: 'pending' }, { $set: { status: 'revoked' } });
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const invitation = await Invitation.create({
-      email, role, team: teamId, invitedBy: req.user._id,
-      tokenHash: crypto.createHash('sha256').update(rawToken).digest('hex'),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
-
-    res.status(201).json({ id: invitation._id, email, role, team: teamId, status: invitation.status, expiresAt: invitation.expiresAt, token: rawToken });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+const getAssignableAgents = async (req, res) => {
+  const query = { role: USER_ROLES.AGENT, status: 'active' };
+  if (req.user.role !== USER_ROLES.ADMIN) {
+    const teamId = req.user.team?._id || req.user.team;
+    if (!teamId) return res.json([]);
+    query.team = teamId;
   }
-};
-
-const getInvitations = async (req, res) => {
-  const query = { status: 'pending' };
-  if (req.user.role === USER_ROLES.MANAGER) query.team = req.user.team?._id || req.user.team;
-  const invitations = await Invitation.find(query).populate('team', 'name').sort({ createdAt: -1 });
-  res.json(invitations);
-};
-
-const acceptInvitation = async (req, res) => {
-  try {
-    const tokenHash = crypto.createHash('sha256').update(req.body.token || '').digest('hex');
-    const invitation = await Invitation.findOne({ tokenHash, status: 'pending', expiresAt: { $gt: new Date() } });
-    if (!invitation) return res.status(400).json({ message: 'Invitation is invalid or expired' });
-    if (!req.body.name || !req.body.password) return res.status(400).json({ message: 'Name and password are required' });
-    const passwordHash = await bcrypt.hash(req.body.password, 10);
-    const user = await User.create({ name: req.body.name.trim(), email: invitation.email, passwordHash, role: invitation.role, team: invitation.team });
-    invitation.status = 'accepted';
-    await invitation.save();
-    res.status(201).json({ id: user._id, email: user.email, role: user.role, status: user.status });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const agents = await User.find(query).select('name email role team status').populate('team', 'name').sort({ name: 1 });
+  res.json(agents);
 };
 
 module.exports = {
   getUsers,
   updateUser,
-  createInvitation,
-  getInvitations,
-  acceptInvitation,
+  getAssignableAgents,
 };

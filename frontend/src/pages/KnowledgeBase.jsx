@@ -18,8 +18,9 @@ const KnowledgeBase = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { role } = useAuth();
-  const canEdit = role === USER_ROLES.ADMIN;
+  const canEdit = [USER_ROLES.AGENT, USER_ROLES.MANAGER, USER_ROLES.ADMIN].includes(role);
   const canPublish = [USER_ROLES.MANAGER, USER_ROLES.ADMIN].includes(role);
+  const canDelete = role === USER_ROLES.ADMIN;
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '');
@@ -32,6 +33,7 @@ const KnowledgeBase = () => {
   const [operation, setOperation] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const { locked: savingLocked, runOnce: runSaveOnce } = useActionLock();
@@ -202,11 +204,12 @@ const KnowledgeBase = () => {
                     <span>{article.category?.name || 'Uncategorized'}</span>
                     <span>{new Date(article.updatedAt).toLocaleDateString()}</span>
                   </div>
-                  {(canEdit || canPublish) && <div className="modal-actions">
+                  <div className="modal-actions">
+                    <Button variant="primary" onClick={() => setSelectedArticle(article)}>Read article</Button>
                     {canEdit && <Button variant="outline" disabled={Boolean(operation)} onClick={() => openEdit(article)}>Edit</Button>}
                     {canPublish && <Button variant="outline" isLoading={operation === `publish:${getArticleId(article)}`} onClick={() => handlePublish(article)}>{article.published ? 'Unpublish' : 'Publish'}</Button>}
-                    {canEdit && <Button variant="outline" isLoading={operation === `delete:${getArticleId(article)}`} onClick={() => handleDelete(article)}>Delete</Button>}
-                  </div>}
+                    {canDelete && <Button variant="outline" isLoading={operation === `delete:${getArticleId(article)}`} onClick={() => handleDelete(article)}>Delete</Button>}
+                  </div>
                 </Card>
               ))}
             </div>
@@ -240,6 +243,9 @@ const KnowledgeBase = () => {
             <Button type="submit" variant="primary" isLoading={saving}>Save article</Button>
           </div>
         </form>
+      </Modal>
+      <Modal isOpen={Boolean(selectedArticle)} onClose={() => setSelectedArticle(null)} title={selectedArticle?.title || 'Article'}>
+        {selectedArticle && <article className="article-reader"><div className="article-reader-meta"><span>{selectedArticle.category?.name || 'Uncategorized'}</span><span>{selectedArticle.published ? 'Published' : 'Draft'}</span></div>{selectedArticle.summary && <p className="article-reader-summary">{selectedArticle.summary}</p>}<div className="article-reader-content">{selectedArticle.content}</div></article>}
       </Modal>
     </div>
   );

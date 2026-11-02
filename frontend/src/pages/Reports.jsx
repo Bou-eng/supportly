@@ -21,6 +21,7 @@ const Reports = () => {
   useEffect(() => {
     const params = getDates(timeRange);
     setLoading(true);
+    setError('');
         Promise.all([reportApi.summary(params), reportApi.agentPerformance(params), reportApi.teamWorkload(params), reportApi.ticketVolume(params)])
           .then(([summary, agents, teams, volume]) => setData({ summary, agents: agents.agents || [], teams: teams.teams || [], volume: volume.volume || [] }))
       .catch((requestError) => setError(requestError.response?.data?.message || 'Unable to load reports.'))

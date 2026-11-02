@@ -16,6 +16,8 @@ let Team;
 let Category;
 let Ticket;
 let Message;
+let KnowledgeArticle;
+let Notification;
 let agent;
 let customer;
 let secondCustomer;
@@ -67,6 +69,8 @@ test.before(async () => {
   Category = require('../models/Category');
   Ticket = require('../models/ticket');
   Message = require('../models/Message');
+  KnowledgeArticle = require('../models/KnowledgeArticle');
+  Notification = require('../models/Notification');
   await mongoose.connect(process.env.MONGO_URI);
 
   team = await Team.create({ name: 'Technical Support', description: 'Test team' });
@@ -190,4 +194,157 @@ test('user list excludes password hashes', async () => {
   assert.equal(response.status, 200);
   assert.equal(response.body.length > 0, true);
   assert.equal(response.body.some((user) => Object.hasOwn(user, 'passwordHash')), false);
+});
+
+test('ticket access and assignment stay inside team boundaries', async () => {
+  const otherTeam = await Team.create({ name: 'Boundary Team' });
+  const otherAgent = await createUser({ name: 'Boundary Agent', email: 'boundary-agent@example.com', role: 'agent', team: otherTeam._id });
+  const otherTicket = await Ticket.create({ user: customer._id, title: 'Boundary ticket', description: 'Private to another team', team: otherTeam._id, assignedTo: otherAgent._id });
+
+  assert.equal((await managerClient.get(`/api/tickets/${otherTicket._id}`)).status, 403);
+  assert.equal((await agentClient.patch(`/api/tickets/${otherTicket._id}/assign`).send({ assignedTo: null })).status, 403);
+});
+
+test('generic ticket updates cannot bypass workflow validation', async () => {
+  const ticket = await createTicket(customerClient);
+  const response = await agentClient.patch(`/api/tickets/${ticket._id}`).send({
+    assignedTo: customer._id.toString(),
+    status: 'closed',
+  });
+  assert.equal(response.status, 400);
+  const unchanged = await Ticket.findById(ticket._id);
+  assert.equal(unchanged.assignedTo, null);
+  assert.equal(unchanged.status, 'open');
+});
+
+test('invitations are explicitly unavailable until implemented', async () => {
+  const accept = await request(app).post('/api/users/invitations/accept').send({ token: 'unused' });
+  const create = await managerClient.post('/api/users/invitations').send({ email: 'later@example.com', team: team._id });
+  assert.equal(accept.status, 501);
+  assert.equal(create.status, 501);
+});
+
+test('agents create drafts and unpublished articles are not public', async () => {
+  const created = await agentClient.post('/api/articles').send({
+    title: 'Agent Draft Security Test',
+    content: 'Draft content',
+    published: true,
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.published, false);
+  const publicRead = await request(app).get(`/api/articles/${created.body.slug}`);
+  assert.equal(publicRead.status, 404);
+  assert.equal(await KnowledgeArticle.countDocuments({ slug: created.body.slug, published: false }), 1);
+});
+
+test('internal notes do not notify customers', async () => {
+  const ticket = await createTicket(customerClient);
+  const ownerId = ticket.user._id;
+  const before = await Notification.countDocuments({ recipient: ownerId, relatedTicket: ticket._id, type: 'NEW_MESSAGE' });
+  const response = await agentClient.post(`/api/tickets/${ticket._id}/messages`).send({ content: 'Private note', type: 'internal' });
+  const after = await Notification.countDocuments({ recipient: ownerId, relatedTicket: ticket._id, type: 'NEW_MESSAGE' });
+  assert.equal(response.status, 201);
+  assert.equal(after, before);
+});
+
+test('agent report summary uses the same ticket scope as the ticket list', async () => {
+  const list = await agentClient.get('/api/tickets?limit=100');
+  const summary = await agentClient.get('/api/reports/summary?from=2020-01-01&to=2035-01-01');
+  assert.equal(list.status, 200);
+  assert.equal(summary.status, 200);
+  assert.equal(summary.body.overview.totalTickets, list.body.total);
+});
+
+test('the production test-notification route is removed', async () => {
+  const response = await customerClient.post('/api/notifications/test').send({ ticketId: new mongoose.Types.ObjectId() });
+  assert.equal(response.status, 404);
+});
+
+test('managers promote only agents into their own team', async () => {
+  const promotable = await createUser({ name: 'Promotable Customer', email: 'promotable@example.com', role: 'customer' });
+  const promoted = await managerClient.patch(`/api/users/${promotable._id}`).send({ role: 'agent', status: 'active' });
+  assert.equal(promoted.status, 200);
+  assert.equal(promoted.body.role, 'agent');
+  assert.equal(promoted.body.team._id, team._id.toString());
+
+  const secondPromotable = await createUser({ name: 'No Manager Promotion', email: 'no-manager-promotion@example.com', role: 'customer' });
+  const forbidden = await managerClient.patch(`/api/users/${secondPromotable._id}`).send({ role: 'manager' });
+  assert.equal(forbidden.status, 403);
+});
+
+test('admins promote registered customers to manager or agent roles', async () => {
+  const promotionTeam = await Team.create({ name: 'Admin Promotion Team' });
+  const futureManager = await createUser({ name: 'Future Manager', email: 'future-manager@example.com', role: 'customer' });
+  const promotedManager = await adminClient.patch(`/api/users/${futureManager._id}`).send({ role: 'manager', team: promotionTeam._id.toString(), status: 'active' });
+  assert.equal(promotedManager.status, 200);
+  assert.equal(promotedManager.body.role, 'manager');
+  assert.equal(promotedManager.body.team._id, promotionTeam._id.toString());
+
+  const futureAgent = await createUser({ name: 'Future Agent', email: 'future-agent@example.com', role: 'customer' });
+  const promotedAgent = await adminClient.patch(`/api/users/${futureAgent._id}`).send({ role: 'agent', team: promotionTeam._id.toString(), status: 'active' });
+  assert.equal(promotedAgent.status, 200);
+  assert.equal(promotedAgent.body.role, 'agent');
+});
+
+test('only admins can create teams', async () => {
+  const managerAttempt = await managerClient.post('/api/teams').send({ name: 'Manager Team Attempt' });
+  const adminAttempt = await adminClient.post('/api/teams').send({ name: 'Admin Created Team', description: 'Created through the API' });
+  assert.equal(managerAttempt.status, 403);
+  assert.equal(adminAttempt.status, 201);
+});
+
+test('team deletion is blocked while the team is referenced', async () => {
+  const response = await adminClient.delete(`/api/teams/${team._id}`);
+  assert.equal(response.status, 409);
+});
+
+test('teamless intake tickets are visible and inherit the assignee team', async () => {
+  const intakeCategory = await Category.create({ name: 'Unrouted Intake' });
+  const created = await createTicket(customerClient, { category: intakeCategory._id.toString(), title: 'Unrouted intake ticket' });
+  assert.equal(created.team, null);
+  const visible = await agentClient.get(`/api/tickets/${created._id}`);
+  assert.equal(visible.status, 200);
+  const assigned = await agentClient.patch(`/api/tickets/${created._id}/assign`).send({ assignedTo: agent._id.toString() });
+  assert.equal(assigned.status, 200);
+  assert.equal(assigned.body.team._id, team._id.toString());
+});
+
+test('notification preferences suppress ticket updates', async () => {
+  const ticket = await createTicket(customerClient);
+  const owner = await User.findById(ticket.user._id);
+  owner.notificationPreferences.ticketUpdated = false;
+  await owner.save();
+  const before = await Notification.countDocuments({ recipient: owner._id, relatedTicket: ticket._id, type: 'STATUS_CHANGE' });
+  const response = await managerClient.patch(`/api/tickets/${ticket._id}/status`).send({ status: 'in-progress' });
+  const after = await Notification.countDocuments({ recipient: owner._id, relatedTicket: ticket._id, type: 'STATUS_CHANGE' });
+  assert.equal(response.status, 200);
+  assert.equal(after, before);
+  owner.notificationPreferences.ticketUpdated = true;
+  await owner.save();
+});
+
+test('message model supports attachment-only replies', async () => {
+  const ticket = await Ticket.create({ user: customer._id, title: 'Attachment only', description: 'Test', team: team._id });
+  const message = await Message.create({
+    ticket: ticket._id,
+    author: customer._id,
+    content: '',
+    attachments: [{ name: 'note.txt', publicId: 'audit/note', resourceType: 'raw', mimeType: 'text/plain', bytes: 4 }],
+  });
+  assert.equal(message.content, '');
+  assert.equal(message.attachments.length, 1);
+});
+
+test('customers cannot download attachments from internal notes', async () => {
+  const ticket = await createTicket(customerClient);
+  const message = await Message.create({
+    ticket: ticket._id,
+    author: agent._id,
+    type: 'internal',
+    content: 'Private attachment',
+    attachments: [{ name: 'private.txt', publicId: 'audit/private', resourceType: 'raw', mimeType: 'text/plain', bytes: 7 }],
+  });
+  const attachment = message.attachments[0];
+  const response = await customerClient.get(`/api/tickets/${ticket._id}/messages/${message._id}/attachments/${attachment._id}/download`);
+  assert.equal(response.status, 404);
 });

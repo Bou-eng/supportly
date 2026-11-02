@@ -7,6 +7,7 @@ import Button from '../components/common/Button';
 import { useAuth } from '../hooks/useAuth';
 import { TICKET_PRIORITIES, TICKET_STATUSES, USER_ROLES } from '../constants/apiConstants';
 import { ticketApi } from '../services/ticketApi';
+import { userApi } from '../services/userApi';
 import { useActionLock } from '../hooks/useActionLock';
 import './TicketDetail.css';
 
@@ -59,6 +60,7 @@ const TicketDetail = () => {
   const [attachments, setAttachments] = useState([]);
   const [tag, setTag] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
+  const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -101,7 +103,10 @@ const TicketDetail = () => {
       .then(([ticketData, messageData, activityData = []]) => { setTicket(ticketData); setAssigneeId(ticketData.assignedTo?._id || ''); setMessages(messageData); setActivity(activityData); })
       .catch((requestError) => setError(getTicketDetailErrorKey(requestError, 'ticketDetail.errors.load')))
       .finally(() => setLoading(false));
-  }, [id]);
+    if (role !== USER_ROLES.CUSTOMER) {
+      userApi.assignableAgents().then(setAgents).catch(() => setAgents([]));
+    }
+  }, [id, role]);
 
   const handleStatusChange = async (e) => {
     setSaving(true);
@@ -124,7 +129,7 @@ const TicketDetail = () => {
 
   const handlePostComment = async (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() && attachments.length === 0) return;
     await runMessageOnce(async () => {
       setError('');
       try {
@@ -135,6 +140,23 @@ const TicketDetail = () => {
         await refreshActivity();
       } catch (requestError) { setError(getTicketDetailErrorKey(requestError, 'ticketDetail.errors.sendReply')); }
     });
+  };
+
+  const handleAssigneeChange = async (event) => {
+    const nextAssignee = event.target.value;
+    setAssigneeId(nextAssignee);
+    setSaving(true);
+    setError('');
+    try {
+      const updated = await ticketApi.assign(id, nextAssignee);
+      setTicket(updated);
+      await refreshActivity();
+    } catch (requestError) {
+      setAssigneeId(ticket.assignedTo?._id || '');
+      setError(getTicketDetailErrorKey(requestError, 'ticketDetail.errors.assign'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <div className="ticket-detail-page"><Card>{t('ticketDetail.loading')}</Card></div>;
@@ -227,7 +249,6 @@ const TicketDetail = () => {
                 placeholder={activeTab === 'reply' ? t('ticketDetail.placeholderReply') : t('ticketDetail.placeholderNote')}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                required
               />
               <input type="file" multiple accept="image/jpeg,image/png,image/gif,application/pdf,text/plain,text/csv" onChange={(event) => setAttachments(Array.from(event.target.files || []))} />
               {attachments.length > 0 && <small>{attachments.length} attachment(s) selected</small>}
@@ -256,8 +277,8 @@ const TicketDetail = () => {
         <div className="control-sidebar-column">
           <Card title={t('ticketDetail.updateDetails')}>
             <div className="control-group">
-              <label>{t('ticketDetail.status')}</label>
-              <select disabled={role === USER_ROLES.CUSTOMER} value={ticket.status} onChange={handleStatusChange} className="control-select">
+              <label htmlFor="ticket-status">{t('ticketDetail.status')}</label>
+              <select id="ticket-status" disabled={role === USER_ROLES.CUSTOMER || saving} value={ticket.status} onChange={handleStatusChange} className="control-select">
                 <option value={TICKET_STATUSES.OPEN}>{t('status.open')}</option>
                 <option value={TICKET_STATUSES.IN_PROGRESS}>{t('status.inProgress')}</option>
                 <option value={TICKET_STATUSES.RESOLVED}>{t('status.resolved')}</option>
@@ -266,8 +287,9 @@ const TicketDetail = () => {
             </div>
 
             <div className="control-group">
-              <label>{t('ticketDetail.priority')}</label>
-              <select disabled={role === USER_ROLES.CUSTOMER} value={ticket.priority} onChange={handlePriorityChange} className="control-select">
+              <label htmlFor="ticket-priority">{t('ticketDetail.priority')}</label>
+              <select id="ticket-priority" disabled={role === USER_ROLES.CUSTOMER || saving} value={ticket.priority} onChange={handlePriorityChange} className="control-select">
+                <option value={TICKET_PRIORITIES.URGENT}>{t('priority.urgent')}</option>
                 <option value={TICKET_PRIORITIES.HIGH}>{t('priority.high')}</option>
                 <option value={TICKET_PRIORITIES.MEDIUM}>{t('priority.medium')}</option>
                 <option value={TICKET_PRIORITIES.LOW}>{t('priority.low')}</option>
@@ -275,8 +297,11 @@ const TicketDetail = () => {
             </div>
 
             <div className="control-group">
-              <label>{t('ticketDetail.assignee')}</label>
-              <input disabled={role === USER_ROLES.CUSTOMER} value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} onBlur={() => ticketApi.assign(id, assigneeId).then(async (updated) => { setError(''); setTicket(updated); await refreshActivity(); }).catch((requestError) => setError(getTicketDetailErrorKey(requestError, 'ticketDetail.errors.assign')))} placeholder={t('ticketDetail.assigneePlaceholder')} className="control-select" />
+              <label htmlFor="ticket-assignee">{t('ticketDetail.assignee')}</label>
+              <select id="ticket-assignee" disabled={role === USER_ROLES.CUSTOMER || saving} value={assigneeId} onChange={handleAssigneeChange} className="control-select">
+                <option value="">Unassigned</option>
+                {agents.filter((agent) => !ticket.team || (agent.team?._id || agent.team) === ticket.team?._id).map((agent) => <option key={agent._id} value={agent._id}>{agent.name} · {agent.team?.name || 'No team'}</option>)}
+              </select>
             </div>
 
             <div className="control-group">

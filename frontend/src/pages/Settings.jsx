@@ -12,7 +12,7 @@ import './Settings.css';
 const DEFAULT_SETTINGS = {
   profile: { name: '', email: '', language: 'en' },
   workspace: { name: '', domain: '' },
-  notifications: { ticketAssigned: true, ticketUpdated: true, weeklyReport: false },
+  notifications: { ticketAssigned: true, ticketUpdated: true },
 };
 
 const Settings = () => {
@@ -77,7 +77,7 @@ const Settings = () => {
           {saved && <div className="success-banner">✅ {t('settings.successMsg')}</div>}
           {activeTab === 'profile' && <Card><h2 className="section-title">{t('settings.profile.title')}</h2><form onSubmit={handleSave} className="settings-form"><Input label={t('settings.profile.fullName')} value={settings.profile.name} onChange={(e) => updateSection('profile', 'name', e.target.value)} required /><Input label={t('settings.profile.email')} type="email" value={settings.profile.email} onChange={(e) => updateSection('profile', 'email', e.target.value)} required /><div className="form-group"><label className="form-label">{t('settings.profile.language')}</label><select className="form-select" value={settings.profile.language} onChange={(e) => updateSection('profile', 'language', e.target.value)}><option value="en">English</option><option value="tr">Türkçe</option></select></div><Button type="submit" variant="primary" disabled={locked} isLoading={saving || locked}>{t('settings.profile.saveBtn')}</Button></form></Card>}
           {activeTab === 'workspace' && isAdmin && <Card><h2 className="section-title">{t('settings.workspace.title')}</h2><form onSubmit={handleSave} className="settings-form"><Input label={t('settings.workspace.name')} value={settings.workspace.name} onChange={(e) => updateSection('workspace', 'name', e.target.value)} required /><Input label={t('settings.workspace.domain')} value={settings.workspace.domain} onChange={(e) => updateSection('workspace', 'domain', e.target.value)} required /><Button type="submit" variant="primary" disabled={locked} isLoading={saving || locked}>{t('settings.workspace.saveBtn')}</Button></form></Card>}
-          {activeTab === 'notifications' && <Card><h2 className="section-title">{t('settings.notifications.title')}</h2><form onSubmit={handleSave} className="settings-form">{['ticketAssigned', 'ticketUpdated', 'weeklyReport'].map((key) => <label className="checkbox-label" key={key}><input type="checkbox" checked={settings.notifications[key]} onChange={(e) => updateSection('notifications', key, e.target.checked)} /><span>{t(`settings.notifications.${key}`)}</span></label>)}<Button type="submit" variant="primary" disabled={locked} isLoading={saving || locked}>{t('settings.notifications.saveBtn')}</Button></form></Card>}
+          {activeTab === 'notifications' && <Card><h2 className="section-title">{t('settings.notifications.title')}</h2><form onSubmit={handleSave} className="settings-form">{['ticketAssigned', 'ticketUpdated'].map((key) => <label className="checkbox-label" key={key}><input type="checkbox" checked={settings.notifications[key]} onChange={(e) => updateSection('notifications', key, e.target.checked)} /><span>{t(`settings.notifications.${key}`)}</span></label>)}<Button type="submit" variant="primary" disabled={locked} isLoading={saving || locked}>{t('settings.notifications.saveBtn')}</Button></form></Card>}
         </div>
       </div>
     </div>

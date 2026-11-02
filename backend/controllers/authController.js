@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const COOKIE_NAME = 'accessToken';
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
 const toAuthUser = (user) => ({
   id: user._id,
@@ -40,6 +41,9 @@ const registerUser = async (req, res) => {
     // 1. Basic validation
     if (!name?.trim() || !normalizedEmail || !password) {
       return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      return res.status(400).json({ message: 'Please provide a valid email address' });
     }
 
     if (!PASSWORD_PATTERN.test(password)) {

@@ -87,7 +87,7 @@ Supportly separates functionality according to user roles.
 | ------------ | -------------------------------------------------------------------------------- |
 | **Customer** | Create tickets, view own tickets, communicate with support                       |
 | **Agent**    | Manage assigned support tickets, respond to customers, update ticket information |
-| **Manager**  | Manage support operations, assignments, teams, and users                         |
+| **Manager**  | Manage team operations, assign tickets, and promote customers to agents in their team |
 | **Admin**    | Full system administration and configuration                                     |
 
 Access to protected operations is enforced on the backend rather than relying only on frontend route protection.
@@ -122,7 +122,7 @@ Tickets also support priority management so support teams can identify and handl
 
 ## 👨‍💼 Team & User Management
 
-Managers and administrators can manage the support organization through dedicated APIs and interfaces.
+Administrators manage teams and organization-wide access. Managers manage agents and ticket operations inside their own team.
 
 Features include:
 

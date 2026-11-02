@@ -2,20 +2,18 @@ const Ticket = require('../models/ticket');
 const Message = require('../models/Message');
 const User = require('../models/user');
 const { TICKET_STATUSES } = require('../constants/apiConstants');
+const { ticketScopeForUser } = require('../utils/ticketAccess');
 
 const getDateRange = (req) => {
   const end = req.query.to ? new Date(req.query.to) : new Date();
   const start = req.query.from ? new Date(req.query.from) : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return null;
   end.setHours(23, 59, 59, 999);
   return { start, end };
 };
 
 const baseMatch = (req, range) => {
-  const match = { createdAt: { $gte: range.start, $lte: range.end } };
-  if (req.user.role === 'customer') match.user = req.user._id;
-  if (req.user.role === 'manager') match.team = req.user.team?._id || req.user.team || null;
-  return match;
+  return { ...ticketScopeForUser(req.user), createdAt: { $gte: range.start, $lte: range.end } };
 };
 
 const average = (values) => values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;
@@ -26,14 +24,26 @@ const formatDuration = (milliseconds) => {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 };
 
-const getTicketTiming = async (tickets) => Promise.all(tickets.map(async (ticket) => {
-  const messages = await Message.find({ ticket: ticket._id, type: 'public' }).sort({ createdAt: 1 }).populate('author', 'role');
-  const firstStaffMessage = messages.find((message) => message.author?._id.toString() !== ticket.user.toString() && message.author?.role !== 'customer');
-  return {
-    firstResponse: firstStaffMessage ? firstStaffMessage.createdAt - ticket.createdAt : null,
+const getTicketTiming = async (tickets) => {
+  if (tickets.length === 0) return [];
+  const messages = await Message.find({ ticket: { $in: tickets.map((ticket) => ticket._id) }, type: 'public' })
+    .sort({ createdAt: 1 })
+    .populate('author', 'role')
+    .lean();
+  const firstStaffByTicket = new Map();
+  for (const message of messages) {
+    const key = message.ticket.toString();
+    if (!firstStaffByTicket.has(key) && message.author?.role !== 'customer') {
+      firstStaffByTicket.set(key, message.createdAt);
+    }
+  }
+  return tickets.map((ticket) => ({
+    firstResponse: firstStaffByTicket.has(ticket._id.toString())
+      ? firstStaffByTicket.get(ticket._id.toString()) - ticket.createdAt
+      : null,
     resolution: ticket.resolvedAt ? ticket.resolvedAt - ticket.createdAt : null,
-  };
-}));
+  }));
+};
 
 const getSummaryReport = async (req, res) => {
   try {
@@ -44,7 +54,10 @@ const getSummaryReport = async (req, res) => {
     const timings = await getTicketTiming(tickets);
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const resolvedToday = tickets.filter((ticket) => ticket.resolvedAt && ticket.resolvedAt >= todayStart).length;
+    const resolvedToday = await Ticket.countDocuments({
+      ...ticketScopeForUser(req.user),
+      resolvedAt: { $gte: todayStart },
+    });
     const byStatus = tickets.reduce((result, ticket) => ({ ...result, [ticket.status]: (result[ticket.status] || 0) + 1 }), {});
     const byPriority = tickets.reduce((result, ticket) => ({ ...result, [ticket.priority]: (result[ticket.priority] || 0) + 1 }), {});
     const firstResponses = timings.filter((timing) => timing.firstResponse !== null).map((timing) => timing.firstResponse);

@@ -38,7 +38,7 @@ const updateSettings = async (req, res) => {
       }
       if (profile.email !== undefined) {
         const email = profile.email.trim().toLowerCase();
-        if (!email) return res.status(400).json({ message: 'Email is required' });
+        if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ message: 'Please provide a valid email address' });
         const duplicate = await User.findOne({ email, _id: { $ne: user._id } });
         if (duplicate) return res.status(400).json({ message: 'Email is already in use' });
         user.email = email;
@@ -50,7 +50,7 @@ const updateSettings = async (req, res) => {
     }
 
     if (notifications) {
-      for (const key of ['ticketAssigned', 'ticketUpdated', 'weeklyReport']) {
+      for (const key of ['ticketAssigned', 'ticketUpdated']) {
         if (notifications[key] !== undefined && typeof notifications[key] !== 'boolean') {
           return res.status(400).json({ message: `Invalid notification preference: ${key}` });
         }

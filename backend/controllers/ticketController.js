@@ -6,6 +6,7 @@ const createActivityLog = require('../utils/createActivityLog');
 const createNotification = require('../utils/createNotification');
 const resolveReference = require('../utils/resolveReference');
 const findTicket = require('../utils/findTicket');
+const { canAccessTicket, referenceId, ticketScopeForUser } = require('../utils/ticketAccess');
 const { TICKET_PRIORITIES, TICKET_STATUSES } = require('../constants/apiConstants');
 
 const populateTicket = (query) => query
@@ -20,20 +21,6 @@ const populateTicketDocument = (ticket) => ticket.populate([
   { path: 'category', select: 'name description' },
   { path: 'team', select: 'name description' },
 ]);
-
-const canAccessTicket = (ticket, user) => {
-  const ticketOwner = ticket.user?._id || ticket.user;
-  if (user.role === 'admin' || user.role === 'manager' || ticketOwner?.toString() === user._id.toString()) {
-    return true;
-  }
-
-  const ticketTeam = ticket.team?._id || ticket.team;
-  const userTeam = user.team?._id || user.team;
-  return ['agent', 'manager'].includes(user.role)
-    && ticketTeam
-    && userTeam
-    && ticketTeam.toString() === userTeam.toString();
-};
 
 const getReferenceValue = (ticket, path) => (
   ticket[path]
@@ -61,16 +48,22 @@ const createTicket = async (req, res) => {
     if (!ticketTitle || !description) {
       return res.status(400).json({ message: 'Please add a title and description' });
     }
+    if (priority && !Object.values(TICKET_PRIORITIES).includes(priority)) {
+      return res.status(400).json({ message: 'Invalid ticket priority' });
+    }
 
     const categoryId = await resolveReference(Category, category);
     const categoryRecord = categoryId ? await Category.findById(categoryId).select('defaultTeam') : null;
-    const teamId = await resolveReference(Team, team) || categoryRecord?.defaultTeam || null;
+    let requestedTeam = null;
+    if (req.user.role === 'admin' && team) requestedTeam = await resolveReference(Team, team);
+    if (req.user.role === 'manager' || req.user.role === 'agent') requestedTeam = referenceId(req.user.team);
+    const teamId = requestedTeam || categoryRecord?.defaultTeam || null;
 
     if (category && !categoryId) {
       return res.status(400).json({ message: 'Category not found' });
     }
 
-    if (team && !teamId) {
+    if (req.user.role === 'admin' && team && !teamId) {
       return res.status(400).json({ message: 'Team not found' });
     }
 
@@ -96,36 +89,15 @@ const createTicket = async (req, res) => {
 // @access  Private
 const getTickets = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100);
     const skip = (page - 1) * limit;
 
     // Build filter query object
-    const query = {};
+    const query = { ...ticketScopeForUser(req.user) };
     const andConditions = [];
 
     // 1. Role-based scoping
-    if (req.user.role === 'customer') {
-      query.user = req.user._id;
-    }
-
-    if (req.user.role === 'agent' || req.user.role === 'manager') {
-      const userTeamId = req.user.team?._id || req.user.team;
-
-      if (userTeamId) {
-        // See tickets in their team OR tickets assigned to them
-        andConditions.push({
-          $or: [
-            { team: userTeamId },
-            { assignedTo: req.user._id },
-          ],
-        });
-      } else {
-        // No team assigned: fall back to only what's assigned to them
-        query.assignedTo = req.user._id;
-      }
-    }
-
     // 2. Query parameter filters
     if (req.query.status) query.status = req.query.status;
     if (req.query.priority) query.priority = req.query.priority;
@@ -140,10 +112,12 @@ const getTickets = async (req, res) => {
 
     if (req.query.category) {
       query.category = await resolveReference(Category, req.query.category);
+      if (!query.category) return res.status(400).json({ message: 'Category not found' });
     }
 
     if (req.query.team) {
       query.team = await resolveReference(Team, req.query.team);
+      if (!query.team) return res.status(400).json({ message: 'Team not found' });
     }
 
     // Merge accumulated $or conditions safely
@@ -222,8 +196,14 @@ const updateTicket = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this ticket' });
     }
 
+    const dedicatedWorkflowFields = ['status', 'priority', 'assignedTo'];
+    if (dedicatedWorkflowFields.some((field) => Object.hasOwn(req.body, field))) {
+      return res.status(400).json({ message: 'Use the dedicated status, priority, or assignment endpoint' });
+    }
+
     // Apply updates sent in request body
-    const staffFields = ['status', 'priority', 'assignedTo', 'team', 'category', 'tags', 'slaDueAt'];
+    const staffFields = ['category', 'tags', 'slaDueAt'];
+    if (req.user.role === 'admin') staffFields.push('team');
     const customerFields = ['title', 'description'];
     const allowedFields = req.user.role === 'customer' ? customerFields : [...customerFields, ...staffFields];
     const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowedFields.includes(key)));
@@ -246,15 +226,6 @@ const updateTicket = async (req, res) => {
         return res.status(400).json({ message: 'Team not found' });
       }
     }
-
-    if (req.user.role === 'manager' && updates.team && updates.team.toString() !== (req.user.team?._id || req.user.team)?.toString()) {
-      return res.status(403).json({ message: 'Managers can only route tickets within their team' });
-    }
-
-    if (updates.status === TICKET_STATUSES.RESOLVED && !ticket.resolvedAt) updates.resolvedAt = new Date();
-    if (updates.status === TICKET_STATUSES.CLOSED && !ticket.closedAt) updates.closedAt = new Date();
-    if (updates.status && updates.status !== TICKET_STATUSES.RESOLVED) updates.resolvedAt = null;
-    if (updates.status && updates.status !== TICKET_STATUSES.CLOSED) updates.closedAt = null;
 
     const updatedTicket = await Ticket.findByIdAndUpdate(
       ticket._id,
@@ -298,8 +269,12 @@ const updateTicketStatus = async (req, res) => {
     if (!canAccessTicket(ticket, req.user) || req.user.role === 'customer') {
       return res.status(403).json({ message: 'Not authorized to change ticket status' });
     }
+    if (!Object.values(TICKET_STATUSES).includes(status)) {
+      return res.status(400).json({ message: 'Invalid ticket status' });
+    }
 
     const oldStatus = ticket.status;
+    if (oldStatus === status) return res.json(await populateTicketDocument(ticket));
     ticket.status = status;
     await normalizeTicketReferences(ticket);
 
@@ -356,8 +331,12 @@ const updateTicketPriority = async (req, res) => {
     if (!canAccessTicket(ticket, req.user) || req.user.role === 'customer') {
       return res.status(403).json({ message: 'Not authorized to change ticket priority' });
     }
+    if (!Object.values(TICKET_PRIORITIES).includes(priority)) {
+      return res.status(400).json({ message: 'Invalid ticket priority' });
+    }
 
     const oldPriority = ticket.priority;
+    if (oldPriority === priority) return res.json(await populateTicketDocument(ticket));
     ticket.priority = priority;
     await normalizeTicketReferences(ticket);
     await ticket.save();
@@ -392,8 +371,8 @@ const assignTicket = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    if (req.user.role === 'manager' && ticket.team?.toString() !== (req.user.team?._id || req.user.team)?.toString()) {
-      return res.status(403).json({ message: 'Managers can only assign tickets within their team' });
+    if (!canAccessTicket(ticket, req.user)) {
+      return res.status(403).json({ message: 'Not authorized to assign this ticket' });
     }
 
     const assignee = assignedTo || null;
@@ -402,9 +381,13 @@ const assignTicket = async (req, res) => {
       if (!assignedUser || assignedUser.role !== 'agent' || assignedUser.status !== 'active' || (ticket.team && assignedUser.team?.toString() !== ticket.team.toString())) {
         return res.status(400).json({ message: 'Assignee must belong to the ticket team' });
       }
+      if (!ticket.team) ticket.team = assignedUser.team;
     }
 
     const oldAssignee = ticket.assignedTo ? ticket.assignedTo.toString() : 'unassigned';
+    if (oldAssignee === (assignee || 'unassigned')) {
+      return res.json(await populateTicketDocument(ticket));
+    }
     ticket.assignedTo = assignee;
     await normalizeTicketReferences(ticket);
     await ticket.save();

@@ -43,6 +43,7 @@ const CreateTicket = () => {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [partialSuccess, setPartialSuccess] = useState(null);
   const [error, setError] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -72,9 +73,12 @@ const CreateTicket = () => {
       try {
         const createdTicket = await ticketApi.create({ title: formData.title, description: formData.description, contactEmail: formData.contactEmail, category: formData.category, priority: formData.priority });
         if (attachments.length > 0) {
-          const message = await ticketApi.reply(createdTicket.ticketNumber || createdTicket._id, 'Attachments added to this ticket.', 'public', attachments);
-          if (message.attachments?.length !== attachments.length) {
-            throw new Error('The selected attachments were not uploaded.');
+          try {
+            const message = await ticketApi.reply(createdTicket.ticketNumber || createdTicket._id, '', 'public', attachments);
+            if (message.attachments?.length !== attachments.length) throw new Error('Upload incomplete');
+          } catch {
+            setPartialSuccess(createdTicket);
+            return;
           }
         }
         setSuccess(true);
@@ -97,7 +101,12 @@ const CreateTicket = () => {
       </div>
 
       <Card className="form-card">
-        {success ? (
+        {partialSuccess ? (
+          <div className="success-banner">
+            <p>✅ Your ticket was created, but its attachments could not be uploaded.</p>
+            <Button variant="primary" onClick={() => navigate(`/tickets/${partialSuccess.ticketNumber || partialSuccess._id}`)}>Open ticket and retry</Button>
+          </div>
+        ) : success ? (
           <div className="success-banner">
             ✅ {t('createTicket.successMsg')}
           </div>
@@ -149,7 +158,7 @@ const CreateTicket = () => {
             <div className="form-group">
               <label className="form-label">{t('createTicket.priorityLabel')}</label>
               <div className="priority-selector">
-                {[TICKET_PRIORITIES.LOW, TICKET_PRIORITIES.MEDIUM, TICKET_PRIORITIES.HIGH].map((p) => (
+                {[TICKET_PRIORITIES.LOW, TICKET_PRIORITIES.MEDIUM, TICKET_PRIORITIES.HIGH, TICKET_PRIORITIES.URGENT].map((p) => (
                   <button
                     key={p}
                     type="button"

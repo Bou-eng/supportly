@@ -1,6 +1,7 @@
 const ActivityLog = require('../models/ActivityLog');
 const Ticket = require('../models/ticket');
 const findTicket = require('../utils/findTicket');
+const { canAccessTicket } = require('../utils/ticketAccess');
 
 // @desc    Get activity logs for a specific ticket
 // @route   GET /api/tickets/:id/activity
@@ -15,11 +16,7 @@ const getTicketActivity = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    const isAdmin = req.user.role === 'admin';
-    const isOwner = ticket.user.toString() === req.user._id.toString();
-    const userTeam = req.user.team?._id || req.user.team;
-    const isTeamMember = ticket.team && userTeam && ticket.team.toString() === userTeam.toString();
-    if (!isAdmin && !isOwner && !isTeamMember) {
+    if (!canAccessTicket(ticket, req.user)) {
       return res.status(403).json({ message: 'Not authorized to view ticket activity' });
     }
 

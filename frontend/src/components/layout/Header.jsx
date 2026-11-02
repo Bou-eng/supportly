@@ -4,10 +4,9 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import LanguageToggle from '../common/LanguageToggle';
 import Button from '../common/Button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { notificationApi } from '../../services/notificationApi';
 import { useActionLock } from '../../hooks/useActionLock';
-import { useEffect as useSearchEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ticketApi } from '../../services/ticketApi';
 import { knowledgeApi } from '../../services/knowledgeApi';
@@ -26,6 +25,7 @@ const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const { locked: notificationLocked, runOnce: runNotificationOnce } = useActionLock();
   const { locked: logoutLocked, runOnce: runLogoutOnce } = useActionLock();
+  const searchSequence = useRef(0);
 
   const loadNotifications = async () => {
     try {
@@ -39,18 +39,22 @@ const Header = () => {
 
   useEffect(() => { loadNotifications(); }, [user]);
 
-  useSearchEffect(() => {
+  useEffect(() => {
+    const sequence = ++searchSequence.current;
     if (!searchTerm.trim()) {
       setSearchResults({ tickets: [], articles: [] });
+      setSearching(false);
       return undefined;
     }
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
         const [tickets, articles] = await Promise.all([ticketApi.list({ search: searchTerm, limit: 5 }), knowledgeApi.list({ search: searchTerm, limit: 5 })]);
-        setSearchResults({ tickets: tickets.tickets || [], articles: articles.articles || [] });
+        if (sequence === searchSequence.current) setSearchResults({ tickets: tickets.tickets || [], articles: articles.articles || [] });
+      } catch {
+        if (sequence === searchSequence.current) setSearchResults({ tickets: [], articles: [] });
       } finally {
-        setSearching(false);
+        if (sequence === searchSequence.current) setSearching(false);
       }
     }, 250);
     return () => clearTimeout(timer);
@@ -63,6 +67,15 @@ const Header = () => {
       setNotifications((current) => current.map((item) => item._id === notification._id ? { ...item, isRead: true } : item));
       setUnread((current) => Math.max(current - 1, 0));
     });
+  };
+
+  const openNotification = async (notification) => {
+    await markRead(notification);
+    const ticket = notification.relatedTicket;
+    if (ticket) {
+      setShowNotifications(false);
+      navigate(`/tickets/${ticket.ticketNumber || ticket._id}`);
+    }
   };
 
   return (
@@ -93,7 +106,7 @@ const Header = () => {
         </button>
         {showNotifications && <div className="notification-panel">
           <div className="notification-panel-header"><strong>Notifications</strong><button disabled={notificationLocked} onClick={() => runNotificationOnce(async () => { await notificationApi.markAllAsRead(); setUnread(0); setNotifications((current) => current.map((item) => ({ ...item, isRead: true }))); })}>Mark all read</button></div>
-          {notifications.length === 0 ? <p className="notification-empty">No notifications</p> : notifications.slice(0, 8).map((notification) => <button key={notification._id} className={`notification-item ${notification.isRead ? '' : 'unread'}`} onClick={() => markRead(notification)}>{notification.message}<small>{new Date(notification.createdAt).toLocaleString()}</small></button>)}
+          {notifications.length === 0 ? <p className="notification-empty">No notifications</p> : notifications.slice(0, 8).map((notification) => <button key={notification._id} className={`notification-item ${notification.isRead ? '' : 'unread'}`} onClick={() => openNotification(notification)}>{notification.message}<small>{new Date(notification.createdAt).toLocaleString()}</small></button>)}
         </div>}
 
         {/* User Profile Info */}

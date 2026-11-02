@@ -21,8 +21,9 @@ const Tickets = () => {
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setError('');
     ticketApi.list({ page, limit: 10, search: searchTerm || undefined, status: statusFilter === 'all' ? undefined : statusFilter, priority: priorityFilter === 'all' ? undefined : priorityFilter })
-      .then((data) => active && setResult(data))
+      .then((data) => { if (active) setResult(data); })
       .catch((requestError) => active && setError(requestError.response?.status === 401 ? 'You are not authorized to view tickets.' : 'Unable to load tickets.'))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
@@ -52,14 +53,14 @@ const Tickets = () => {
               type="text"
               placeholder={t('tickets.searchPlaceholder')}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setPage(1); setSearchTerm(e.target.value); }}
             />
           </div>
 
           <div className="dropdown-filters">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setPage(1); setStatusFilter(e.target.value); }}
               className="filter-select"
             >
               <option value="all">{t('tickets.filterStatus')}</option>
@@ -71,13 +72,14 @@ const Tickets = () => {
 
             <select
               value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
+              onChange={(e) => { setPage(1); setPriorityFilter(e.target.value); }}
               className="filter-select"
             >
               <option value="all">{t('tickets.filterPriority')}</option>
               <option value={TICKET_PRIORITIES.HIGH}>{t('priority.high')}</option>
               <option value={TICKET_PRIORITIES.MEDIUM}>{t('priority.medium')}</option>
               <option value={TICKET_PRIORITIES.LOW}>{t('priority.low')}</option>
+              <option value={TICKET_PRIORITIES.URGENT}>{t('priority.urgent')}</option>
             </select>
           </div>
         </div>

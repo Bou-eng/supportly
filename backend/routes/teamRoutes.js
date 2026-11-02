@@ -9,9 +9,9 @@ router.use(protect); // Require authentication for all team routes
 
 router.route('/')
   .get(getTeams)
-  .post(authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER), createTeam);
+  .post(authorize(USER_ROLES.ADMIN), createTeam);
 router.route('/:id')
-  .patch(authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER), updateTeam)
+  .patch(authorize(USER_ROLES.ADMIN), updateTeam)
   .delete(authorize(USER_ROLES.ADMIN), deleteTeam);
 
 module.exports = router;

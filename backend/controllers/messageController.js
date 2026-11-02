@@ -1,13 +1,4 @@
-const canAccessTicket = (ticket, user) => {
-  const ownerId = ticket.user?._id || ticket.user;
-  const ticketTeam = ticket.team?._id || ticket.team;
-  const userTeam = user.team?._id || user.team;
-  return user.role === 'admin'
-    || ownerId?.toString() === user._id.toString()
-    || (['agent', 'manager'].includes(user.role) && ticketTeam && userTeam && ticketTeam.toString() === userTeam.toString());
-};
 const Message = require('../models/Message');
-const Ticket = require('../models/ticket');
 const User = require('../models/user');
 const findTicket = require('../utils/findTicket');
 const createActivityLog = require('../utils/createActivityLog');
@@ -15,6 +6,7 @@ const createNotification = require('../utils/createNotification');
 const uploadToCloudinary = require('../utils/uploadToCloudinary');
 const { hasValidSignature } = require('../middleware/uploadMiddleware');
 const { cloudinary, isConfigured } = require('../config/cloudinary');
+const { canAccessTicket, referenceId } = require('../utils/ticketAccess');
 
 // @desc    Add a message/reply to a ticket
 // @route   POST /api/tickets/:id/messages
@@ -42,6 +34,9 @@ const addMessage = async (req, res) => {
 
     // Security check: Only allow 'internal' notes if user is an agent/admin/manager
     const messageType = req.user.role === 'customer' ? 'public' : (type || 'public');
+    if (!['public', 'internal'].includes(messageType)) {
+      return res.status(400).json({ message: 'Invalid message type' });
+    }
 
     if (req.files?.length && !isConfigured) {
       return res.status(503).json({ message: 'File uploads are temporarily unavailable' });
@@ -51,29 +46,47 @@ const addMessage = async (req, res) => {
       return res.status(400).json({ message: 'Attachment content does not match its file type' });
     }
 
-    const attachments = req.files?.length
-      ? await Promise.all(req.files.map(async (file) => {
-        const uploaded = await uploadToCloudinary(file, `supportly/tickets/${ticket._id}`);
-        return {
-          name: file.originalname,
-          publicId: uploaded.public_id,
-          resourceType: uploaded.resource_type,
-          format: uploaded.format || null,
-          mimeType: file.mimetype,
-          bytes: uploaded.bytes || file.size,
-          width: uploaded.width || null,
-          height: uploaded.height || null,
-        };
-      }))
-      : [];
+    const attachments = [];
+    if (req.files?.length) {
+      try {
+        for (const file of req.files) {
+          const uploaded = await uploadToCloudinary(file, `supportly/tickets/${ticket._id}`);
+          attachments.push({
+            name: file.originalname,
+            publicId: uploaded.public_id,
+            resourceType: uploaded.resource_type,
+            format: uploaded.format || null,
+            mimeType: file.mimetype,
+            bytes: uploaded.bytes || file.size,
+            width: uploaded.width || null,
+            height: uploaded.height || null,
+          });
+        }
+      } catch (uploadError) {
+        await Promise.all(attachments.map((attachment) => cloudinary.uploader.destroy(
+          attachment.publicId,
+          { resource_type: attachment.resourceType, type: 'upload' }
+        ).catch(() => {})));
+        throw uploadError;
+      }
+    }
 
-    const message = await Message.create({
-      ticket: ticket._id,
-      author: req.user._id,
-      type: messageType,
-      content: content || '',
-      attachments,
-    });
+    let message;
+    try {
+      message = await Message.create({
+        ticket: ticket._id,
+        author: req.user._id,
+        type: messageType,
+        content: content || '',
+        attachments,
+      });
+    } catch (messageError) {
+      await Promise.all(attachments.map((attachment) => cloudinary.uploader.destroy(
+        attachment.publicId,
+        { resource_type: attachment.resourceType, type: 'upload' }
+      ).catch(() => {})));
+      throw messageError;
+    }
 
     // Populate author details (name, role, email) for response
     await message.populate('author', 'name role email');
@@ -86,18 +99,20 @@ const addMessage = async (req, res) => {
     });
 
     if (req.user.role === 'customer') {
-      const staff = await User.find({
-        role: { $in: ['agent', 'manager', 'admin'] },
-        ...(ticket.team ? { team: ticket.team._id || ticket.team } : {}),
-        _id: { $ne: req.user._id },
-      }).select('_id');
+      const ticketTeam = referenceId(ticket.team);
+      const recipientQuery = ticket.assignedTo
+        ? { _id: ticket.assignedTo }
+        : ticketTeam
+          ? { role: { $in: ['manager'] }, team: ticketTeam }
+          : { role: { $in: ['manager', 'admin'] } };
+      const staff = await User.find({ ...recipientQuery, status: 'active', _id: { $ne: req.user._id } }).select('_id');
       await Promise.all(staff.map((user) => createNotification({
         recipientId: user._id,
         type: 'NEW_MESSAGE',
         message: `Customer replied to ticket ${ticket.ticketNumber}`,
         ticketId: ticket._id,
       })));
-    } else {
+    } else if (messageType === 'public' && ticket.user.toString() !== req.user._id.toString()) {
       await createNotification({
         recipientId: ticket.user,
         type: 'NEW_MESSAGE',
@@ -120,6 +135,9 @@ const getAttachmentDownloadUrl = async (req, res) => {
     if (!canAccessTicket(ticket, req.user)) return res.status(403).json({ message: 'Not authorized to access this ticket' });
 
     const message = await Message.findOne({ _id: req.params.messageId, ticket: ticket._id });
+    if (req.user.role === 'customer' && message?.type === 'internal') {
+      return res.status(404).json({ message: 'Attachment not found' });
+    }
     const attachment = message?.attachments.id(req.params.attachmentId);
     if (!attachment) return res.status(404).json({ message: 'Attachment not found' });
     if (!isConfigured) return res.status(503).json({ message: 'File storage is not configured' });
@@ -131,6 +149,7 @@ const getAttachmentDownloadUrl = async (req, res) => {
         resource_type: attachment.resourceType,
         type: 'upload',
         attachment: true,
+        expires_at: Math.floor(Date.now() / 1000) + 300,
       }
     );
     res.json({ url, expiresIn: 300, name: attachment.name, mimeType: attachment.mimeType });

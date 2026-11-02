@@ -14,6 +14,7 @@ const userSchema = mongoose.Schema(
       unique: true, // No two users can share an email
       lowercase: true,
       trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Please add a valid email'],
     },
     passwordHash: {
       type: String,
@@ -46,7 +47,6 @@ const userSchema = mongoose.Schema(
     notificationPreferences: {
       ticketAssigned: { type: Boolean, default: true },
       ticketUpdated: { type: Boolean, default: true },
-      weeklyReport: { type: Boolean, default: false },
     },
     workspace: {
       type: mongoose.Schema.Types.ObjectId,

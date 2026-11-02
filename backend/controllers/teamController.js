@@ -1,4 +1,7 @@
 const Team = require('../models/Team');
+const User = require('../models/user');
+const Ticket = require('../models/ticket');
+const Category = require('../models/Category');
 
 // @desc    Get all teams
 // @route   GET /api/teams
@@ -53,6 +56,14 @@ const updateTeam = async (req, res) => {
 
 const deleteTeam = async (req, res) => {
   try {
+    const inUse = await Promise.all([
+      User.exists({ team: req.params.id }),
+      Ticket.exists({ team: req.params.id }),
+      Category.exists({ defaultTeam: req.params.id }),
+    ]);
+    if (inUse.some(Boolean)) {
+      return res.status(409).json({ message: 'Team is in use and cannot be deleted' });
+    }
     const team = await Team.findByIdAndDelete(req.params.id);
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.json({ message: 'Team deleted successfully' });

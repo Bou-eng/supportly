@@ -9,9 +9,9 @@ router.use(protect); // All category routes require login
 
 router.route('/')
   .get(getCategories)
-  .post(authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER), createCategory);
+  .post(authorize(USER_ROLES.ADMIN), createCategory);
 router.route('/:id')
-  .patch(authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER), updateCategory)
+  .patch(authorize(USER_ROLES.ADMIN), updateCategory)
   .delete(authorize(USER_ROLES.ADMIN), deleteCategory);
 
 module.exports = router;
