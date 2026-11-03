@@ -32,6 +32,9 @@
   /* Priority Colors */
   --priority-high-bg: #fee2e2;
   --priority-high-text: #dc2626;
+  --danger-solid: #dc2626;
+  --danger-solid-hover: #b91c1c;
+  --danger-solid-text: #ffffff;
   --priority-medium-bg: #fef3c7;
   --priority-medium-text: #d97706;
   --priority-low-bg: #e0f2fe;
@@ -69,6 +72,9 @@
 
   --priority-high-bg: #991b1b;
   --priority-high-text: #fee2e2;
+  --danger-solid: #b91c1c;
+  --danger-solid-hover: #dc2626;
+  --danger-solid-text: #ffffff;
   --priority-medium-bg: #92400e;
   --priority-medium-text: #fef3c7;
   --priority-low-bg: #075985;

@@ -31,12 +31,14 @@
 }
 
 .btn-danger {
-  background-color: var(--priority-high-text);
-  color: #ffffff;
+  background-color: var(--danger-solid);
+  border-color: var(--danger-solid);
+  color: var(--danger-solid-text);
 }
 
 .btn-danger:hover:not(:disabled) {
-  filter: brightness(0.9);
+  background-color: var(--danger-solid-hover);
+  border-color: var(--danger-solid-hover);
 }
 
 .btn:disabled {
