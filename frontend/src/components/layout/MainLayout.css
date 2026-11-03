@@ -4,10 +4,17 @@
 }
 
 .layout-content {
+  display: flex;
+  flex-direction: column;
   margin-left: 260px;
   margin-top: 70px;
   padding: 2rem;
   min-height: calc(100vh - 70px);
+  min-width: 0;
+}
+
+.layout-page-content {
+  flex: 1;
   min-width: 0;
 }
 
