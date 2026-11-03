@@ -21,36 +21,51 @@ const getTeams = async (req, res) => {
 const createTeam = async (req, res) => {
   try {
     const { name, description } = req.body;
+    if (typeof name !== 'string' || (description !== undefined && typeof description !== 'string')) {
+      return res.status(400).json({ message: 'Team name must be text' });
+    }
+    const normalizedName = name.trim();
 
-    if (!name) {
+    if (!normalizedName) {
       return res.status(400).json({ message: 'Team name is required' });
     }
 
-    const teamExists = await Team.findOne({ name });
+    const teamExists = await Team.findOne({ name: normalizedName });
     if (teamExists) {
       return res.status(400).json({ message: 'Team already exists' });
     }
 
-    const team = await Team.create({ name, description });
+    const team = await Team.create({ name: normalizedName, description: description?.trim() || '' });
     res.status(201).json(team);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    const status = error.code === 11000 || error.name === 'ValidationError' ? 400 : 500;
+    res.status(status).json({ message: error.code === 11000 ? 'Team already exists' : error.message });
   }
 };
 
 const updateTeam = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const team = await Team.findByIdAndUpdate(
-      req.params.id,
-      { $set: { ...(name !== undefined && { name: name.trim() }), ...(description !== undefined && { description }) } },
-      { new: true, runValidators: true }
-    );
-
+    if ((name !== undefined && typeof name !== 'string') || (description !== undefined && typeof description !== 'string')) {
+      return res.status(400).json({ message: 'Team name and description must be text' });
+    }
+    const team = await Team.findById(req.params.id);
     if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    if (name !== undefined) {
+      const normalizedName = name.trim();
+      if (!normalizedName) return res.status(400).json({ message: 'Team name is required' });
+      const duplicate = await Team.exists({ _id: { $ne: team._id }, name: normalizedName });
+      if (duplicate) return res.status(400).json({ message: 'Team already exists' });
+      team.name = normalizedName;
+    }
+    if (description !== undefined) team.description = description.trim();
+
+    await team.save();
     res.json(team);
   } catch (error) {
-    res.status(error.code === 11000 ? 400 : 500).json({ message: error.code === 11000 ? 'Team already exists' : error.message });
+    const status = error.code === 11000 || error.name === 'ValidationError' || error.name === 'CastError' ? 400 : 500;
+    res.status(status).json({ message: error.code === 11000 ? 'Team already exists' : error.message });
   }
 };
 
@@ -68,7 +83,7 @@ const deleteTeam = async (req, res) => {
     if (!team) return res.status(404).json({ message: 'Team not found' });
     res.json({ message: 'Team deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(error.name === 'CastError' ? 400 : 500).json({ message: error.message });
   }
 };
 

@@ -11,6 +11,9 @@ import { userApi } from '../services/userApi';
 import { useActionLock } from '../hooks/useActionLock';
 import './Users.css';
 
+const emptyUserForm = { name: '', email: '', password: '', role: USER_ROLES.AGENT, team: '' };
+const emptyTeamForm = { name: '', description: '' };
+
 const Users = () => {
   const { t } = useTranslation();
   const { role } = useAuth();
@@ -22,9 +25,13 @@ const Users = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [editingUser, setEditingUser] = useState(null);
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
+  const [newUser, setNewUser] = useState(emptyUserForm);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isTeamOpen, setIsTeamOpen] = useState(false);
-  const [newTeam, setNewTeam] = useState({ name: '', description: '' });
+  const [newTeam, setNewTeam] = useState(emptyTeamForm);
+  const [editingTeam, setEditingTeam] = useState(null);
+  const [deletingTeam, setDeletingTeam] = useState(null);
   const [saving, setSaving] = useState(false);
   const { locked: userActionLocked, runOnce: runUserActionOnce } = useActionLock();
 
@@ -43,6 +50,40 @@ const Users = () => {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  const openCreateUser = () => {
+    setError('');
+    setSuccess('');
+    setNewUser(emptyUserForm);
+    setIsCreateUserOpen(true);
+  };
+
+  const createUser = async (event) => {
+    event.preventDefault();
+    await runUserActionOnce(async () => {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+      try {
+        const payload = {
+          name: newUser.name,
+          email: newUser.email,
+          password: newUser.password,
+          role: isAdmin ? newUser.role : USER_ROLES.AGENT,
+          ...(isAdmin && { team: newUser.team }),
+        };
+        const created = await userApi.create(payload);
+        setUsers((current) => [created, ...current]);
+        setNewUser(emptyUserForm);
+        setIsCreateUserOpen(false);
+        setSuccess(`${created.name} was created as ${created.role}.`);
+      } catch (requestError) {
+        setError(requestError.response?.data?.message || 'Unable to create user.');
+      } finally {
+        setSaving(false);
+      }
+    });
+  };
 
   const updateUser = async (event) => {
     event.preventDefault();
@@ -75,11 +116,56 @@ const Users = () => {
       try {
         const created = await userApi.createTeam(newTeam);
         setTeams((current) => [...current, created].sort((left, right) => left.name.localeCompare(right.name)));
-        setNewTeam({ name: '', description: '' });
+        setNewTeam(emptyTeamForm);
         setIsTeamOpen(false);
         setSuccess('Team created successfully.');
       } catch (requestError) {
         setError(requestError.response?.data?.message || 'Unable to create team.');
+      } finally {
+        setSaving(false);
+      }
+    });
+  };
+
+  const updateTeam = async (event) => {
+    event.preventDefault();
+    await runUserActionOnce(async () => {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+      try {
+        const updated = await userApi.updateTeam(editingTeam._id, {
+          name: editingTeam.name,
+          description: editingTeam.description || '',
+        });
+        setTeams((current) => current
+          .map((team) => team._id === updated._id ? updated : team)
+          .sort((left, right) => left.name.localeCompare(right.name)));
+        setUsers((current) => current.map((user) => user.team?._id === updated._id
+          ? { ...user, team: { ...user.team, name: updated.name } }
+          : user));
+        setEditingTeam(null);
+        setSuccess('Team updated successfully.');
+      } catch (requestError) {
+        setError(requestError.response?.data?.message || 'Unable to update team.');
+      } finally {
+        setSaving(false);
+      }
+    });
+  };
+
+  const deleteTeam = async () => {
+    await runUserActionOnce(async () => {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+      try {
+        await userApi.deleteTeam(deletingTeam._id);
+        setTeams((current) => current.filter((team) => team._id !== deletingTeam._id));
+        setDeletingTeam(null);
+        setSuccess('Team deleted successfully.');
+      } catch (requestError) {
+        setError(requestError.response?.data?.message || 'Unable to delete team.');
       } finally {
         setSaving(false);
       }
@@ -95,7 +181,8 @@ const Users = () => {
         <div><h1 className="page-title">{t('users.title')}</h1><p className="page-subtitle">{t('users.subtitle')}</p></div>
         <div className="users-header-actions">
           {isAdmin && <Button variant="outline" onClick={() => setIsTeamOpen(true)}>+ Create team</Button>}
-          <Button variant="primary" onClick={() => setIsInviteOpen(true)}>Invite user</Button>
+          <Button variant="outline" onClick={() => setIsInviteOpen(true)}>Invite user</Button>
+          <Button variant="primary" onClick={openCreateUser}>+ Create user</Button>
         </div>
       </div>
       {error && <Card className="no-results-card"><p>{error}</p></Card>}
@@ -109,7 +196,15 @@ const Users = () => {
         </div>}
       </Card>
 
-      {isAdmin && <Card title="Teams"><div className="team-summary-grid">{teams.map((team) => <div className="team-summary-item" key={team._id}><strong>{team.name}</strong><span>{team.description || 'No description'}</span></div>)}</div></Card>}
+      {isAdmin && <Card title="Teams">
+        {teams.length === 0 ? <p className="empty-team-message">No teams have been created yet.</p> : <div className="team-summary-grid">{teams.map((team) => <div className="team-summary-item" key={team._id}>
+          <div className="team-summary-content"><strong>{team.name}</strong><span>{team.description || 'No description'}</span></div>
+          <div className="team-summary-actions">
+            <Button variant="outline" className="btn-sm" onClick={() => { setError(''); setEditingTeam({ ...team }); }} aria-label={`Edit ${team.name}`}>Edit</Button>
+            <Button variant="danger" className="btn-sm" onClick={() => { setError(''); setDeletingTeam(team); }} aria-label={`Delete ${team.name}`}>Delete</Button>
+          </div>
+        </div>)}</div>}
+      </Card>}
 
       <Modal isOpen={Boolean(editingUser)} onClose={() => setEditingUser(null)} title={editingUser?.originalRole === USER_ROLES.CUSTOMER ? 'Promote user' : 'Manage user'}>
         {editingUser && <form onSubmit={updateUser} className="modal-form">
@@ -122,12 +217,35 @@ const Users = () => {
         </form>}
       </Modal>
 
+      <Modal isOpen={isCreateUserOpen} onClose={() => setIsCreateUserOpen(false)} title={isAdmin ? 'Create user' : 'Create agent'}>
+        <form onSubmit={createUser} className="modal-form">
+          <p className="modal-subtitle">{isAdmin ? 'Create an agent or manager account and assign it to a support team.' : 'Create a new agent account for your team.'}</p>
+          <Input label="Name" name="new-user-name" value={newUser.name} onChange={(event) => setNewUser({ ...newUser, name: event.target.value })} required autoComplete="name" />
+          <Input label="Email" name="new-user-email" type="email" value={newUser.email} onChange={(event) => setNewUser({ ...newUser, email: event.target.value })} required autoComplete="email" />
+          <Input label="Initial password" name="new-user-password" type="password" value={newUser.password} onChange={(event) => setNewUser({ ...newUser, password: event.target.value })} required minLength={8} autoComplete="new-password" showPasswordToggle />
+          <p className="password-requirements">At least 8 characters with uppercase, lowercase, and a number.</p>
+          {isAdmin ? <>
+            <div className="form-group"><label className="form-label" htmlFor="new-user-role">Role</label><select id="new-user-role" className="form-select" value={newUser.role} onChange={(event) => setNewUser({ ...newUser, role: event.target.value })}><option value={USER_ROLES.AGENT}>Agent</option><option value={USER_ROLES.MANAGER}>Manager</option></select></div>
+            <div className="form-group"><label className="form-label" htmlFor="new-user-team">Team</label><select id="new-user-team" className="form-select" value={newUser.team} onChange={(event) => setNewUser({ ...newUser, team: event.target.value })} required><option value="">Select team</option>{teams.map((team) => <option key={team._id} value={team._id}>{team.name}</option>)}</select></div>
+          </> : <div className="manager-team-notice">The new agent will be assigned to your team automatically.</div>}
+          <Button type="submit" variant="primary" disabled={userActionLocked} isLoading={saving || userActionLocked}>{isAdmin ? 'Create user' : 'Create agent'}</Button>
+        </form>
+      </Modal>
+
       <Modal isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} title="Invite users">
-        <div className="coming-soon-modal"><div className="coming-soon-icon" aria-hidden="true">✉️</div><span className="coming-soon-label">COMING SOON</span><h4>Invitations will be added later</h4><p>For now, users can create their own customer account. An admin can then promote them to agent or manager, and a manager can promote them to an agent in their team.</p><Button variant="primary" onClick={() => setIsInviteOpen(false)}>Got it</Button></div>
+        <div className="coming-soon-modal"><div className="coming-soon-icon" aria-hidden="true">✉️</div><span className="coming-soon-label">COMING SOON</span><h4>Invitations will be added later</h4><p>For now, admins can create agent and manager accounts directly, while managers can create agents for their own team.</p><Button variant="primary" onClick={() => setIsInviteOpen(false)}>Got it</Button></div>
       </Modal>
 
       <Modal isOpen={isTeamOpen} onClose={() => setIsTeamOpen(false)} title="Create team">
         <form onSubmit={createTeam} className="modal-form"><p className="modal-subtitle">Only administrators can create support teams.</p><Input label="Team name" value={newTeam.name} onChange={(event) => setNewTeam({ ...newTeam, name: event.target.value })} required /><Input label="Description" value={newTeam.description} onChange={(event) => setNewTeam({ ...newTeam, description: event.target.value })} /><Button type="submit" variant="primary" disabled={userActionLocked} isLoading={saving || userActionLocked}>Create team</Button></form>
+      </Modal>
+
+      <Modal isOpen={Boolean(editingTeam)} onClose={() => setEditingTeam(null)} title="Edit team">
+        {editingTeam && <form onSubmit={updateTeam} className="modal-form"><p className="modal-subtitle">Update the team name or description. Existing assignments will remain connected.</p><Input label="Team name" value={editingTeam.name} onChange={(event) => setEditingTeam({ ...editingTeam, name: event.target.value })} required /><Input label="Description" value={editingTeam.description || ''} onChange={(event) => setEditingTeam({ ...editingTeam, description: event.target.value })} /><Button type="submit" variant="primary" disabled={userActionLocked} isLoading={saving || userActionLocked}>Save team</Button></form>}
+      </Modal>
+
+      <Modal isOpen={Boolean(deletingTeam)} onClose={() => setDeletingTeam(null)} title="Delete team">
+        {deletingTeam && <div className="delete-team-confirmation"><div className="delete-team-icon" aria-hidden="true">!</div><h4>Delete {deletingTeam.name}?</h4><p>This is only allowed when no users, tickets, or categories reference the team.</p>{error && <p className="delete-team-error" role="alert">{error}</p>}<div className="modal-actions"><Button variant="outline" onClick={() => setDeletingTeam(null)}>Cancel</Button><Button variant="danger" onClick={deleteTeam} disabled={userActionLocked} isLoading={saving || userActionLocked}>Delete team</Button></div></div>}
       </Modal>
     </div>
   );

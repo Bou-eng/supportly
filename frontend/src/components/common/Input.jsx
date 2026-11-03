@@ -35,6 +35,7 @@ const Input = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
+          required={required}
           className={`input-field ${showPasswordToggle ? 'input-with-toggle' : ''} ${error ? 'input-error' : ''}`}
           {...props}
         />

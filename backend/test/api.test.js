@@ -286,11 +286,115 @@ test('admins promote registered customers to manager or agent roles', async () =
   assert.equal(promotedAgent.body.role, 'agent');
 });
 
+test('admins create agent and manager accounts with assigned teams', async () => {
+  const creationTeam = await Team.create({ name: 'Admin Creation Team' });
+  const createdAgent = await adminClient.post('/api/users').send({
+    name: 'Created Agent',
+    email: 'created-agent@example.com',
+    password: 'Created123',
+    role: 'agent',
+    team: creationTeam._id.toString(),
+  });
+  assert.equal(createdAgent.status, 201);
+  assert.equal(createdAgent.body.role, 'agent');
+  assert.equal(createdAgent.body.team._id, creationTeam._id.toString());
+  assert.equal(Object.hasOwn(createdAgent.body, 'passwordHash'), false);
+
+  const createdManager = await adminClient.post('/api/users').send({
+    name: 'Created Manager',
+    email: 'created-manager@example.com',
+    password: 'Created123',
+    role: 'manager',
+    team: creationTeam._id.toString(),
+  });
+  assert.equal(createdManager.status, 201);
+  assert.equal(createdManager.body.role, 'manager');
+  assert.equal(createdManager.body.team._id, creationTeam._id.toString());
+
+  const login = await request(app).post('/api/auth/login').send({
+    email: 'created-manager@example.com',
+    password: 'Created123',
+  });
+  assert.equal(login.status, 200);
+});
+
+test('managers create agents only in their own team', async () => {
+  const created = await managerClient.post('/api/users').send({
+    name: 'Manager Created Agent',
+    email: 'manager-created-agent@example.com',
+    password: 'Created123',
+    role: 'agent',
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.role, 'agent');
+  assert.equal(created.body.team._id, team._id.toString());
+
+  const managerAttempt = await managerClient.post('/api/users').send({
+    name: 'Forbidden Manager',
+    email: 'forbidden-created-manager@example.com',
+    password: 'Created123',
+    role: 'manager',
+  });
+  assert.equal(managerAttempt.status, 403);
+
+  const otherTeam = await Team.create({ name: 'Manager Cross Team Creation' });
+  const crossTeamAttempt = await managerClient.post('/api/users').send({
+    name: 'Cross Team Agent',
+    email: 'cross-team-created-agent@example.com',
+    password: 'Created123',
+    role: 'agent',
+    team: otherTeam._id.toString(),
+  });
+  assert.equal(crossTeamAttempt.status, 403);
+  assert.equal((await agentClient.post('/api/users').send({
+    name: 'Agent Created User',
+    email: 'agent-created-user@example.com',
+    password: 'Created123',
+    role: 'agent',
+  })).status, 403);
+});
+
+test('user creation validates role, team, email, password, and duplicates', async () => {
+  assert.equal((await adminClient.post('/api/users').send({
+    name: 'Invalid Customer', email: 'new-customer@example.com', password: 'Created123', role: 'customer', team: team._id,
+  })).status, 400);
+  assert.equal((await adminClient.post('/api/users').send({
+    name: 'Missing Team', email: 'missing-team@example.com', password: 'Created123', role: 'agent',
+  })).status, 400);
+  assert.equal((await adminClient.post('/api/users').send({
+    name: 'Bad Email', email: 'not-an-email', password: 'Created123', role: 'agent', team: team._id,
+  })).status, 400);
+  assert.equal((await adminClient.post('/api/users').send({
+    name: 'Weak Password', email: 'weak-password@example.com', password: 'weak', role: 'agent', team: team._id,
+  })).status, 400);
+  assert.equal((await adminClient.post('/api/users').send({
+    name: 'Duplicate Email', email: admin.email.toUpperCase(), password: 'Created123', role: 'manager', team: team._id,
+  })).status, 400);
+});
+
 test('only admins can create teams', async () => {
   const managerAttempt = await managerClient.post('/api/teams').send({ name: 'Manager Team Attempt' });
   const adminAttempt = await adminClient.post('/api/teams').send({ name: 'Admin Created Team', description: 'Created through the API' });
   assert.equal(managerAttempt.status, 403);
   assert.equal(adminAttempt.status, 201);
+});
+
+test('admins edit and delete unused teams while managers cannot', async () => {
+  const editableTeam = await Team.create({ name: 'Editable Team', description: 'Before' });
+  assert.equal((await managerClient.patch(`/api/teams/${editableTeam._id}`).send({ name: 'Manager Edit' })).status, 403);
+  assert.equal((await managerClient.delete(`/api/teams/${editableTeam._id}`)).status, 403);
+
+  const updated = await adminClient.patch(`/api/teams/${editableTeam._id}`).send({
+    name: 'Edited Team',
+    description: 'After',
+  });
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.name, 'Edited Team');
+  assert.equal(updated.body.description, 'After');
+
+  const deleted = await adminClient.delete(`/api/teams/${editableTeam._id}`);
+  assert.equal(deleted.status, 200);
+  assert.equal(await Team.exists({ _id: editableTeam._id }), null);
 });
 
 test('team deletion is blocked while the team is referenced', async () => {

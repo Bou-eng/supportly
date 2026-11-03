@@ -1,7 +1,15 @@
 const User = require('../models/user');
 const Team = require('../models/Team');
+const bcrypt = require('bcryptjs');
 const resolveReference = require('../utils/resolveReference');
 const { USER_ROLES } = require('../constants/apiConstants');
+
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
+
+const operationalUserResponse = async (userId) => User.findById(userId)
+  .populate('team', 'name')
+  .select('-passwordHash');
 
 // @desc    Get all users (with optional role/team query filters)
 // @route   GET /api/users
@@ -38,6 +46,78 @@ const getUsers = async (req, res) => {
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Create an agent or manager account
+// @route   POST /api/users
+// @access  Private (Manager, Admin)
+const createUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    let { role, team } = req.body;
+
+    if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedName || !normalizedEmail || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      return res.status(400).json({ message: 'Please provide a valid email address' });
+    }
+    if (!PASSWORD_PATTERN.test(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters and include uppercase, lowercase, and a number' });
+    }
+    if (await User.exists({ email: normalizedEmail })) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    if (req.user.role === USER_ROLES.MANAGER) {
+      const managerTeam = req.user.team?._id || req.user.team;
+      if (!managerTeam) {
+        return res.status(403).json({ message: 'Manager must belong to a team' });
+      }
+      if (role !== undefined && role !== USER_ROLES.AGENT) {
+        return res.status(403).json({ message: 'Managers can only create agent accounts' });
+      }
+      if (team !== undefined && team && team.toString() !== managerTeam.toString()) {
+        return res.status(403).json({ message: 'Managers can only create agents in their own team' });
+      }
+      role = USER_ROLES.AGENT;
+      team = managerTeam;
+    } else {
+      if (![USER_ROLES.AGENT, USER_ROLES.MANAGER].includes(role)) {
+        return res.status(400).json({ message: 'Admins can only create agent or manager accounts' });
+      }
+      const resolvedTeam = await resolveReference(Team, team);
+      if (!resolvedTeam || !(await Team.exists({ _id: resolvedTeam }))) {
+        return res.status(400).json({ message: 'A valid team is required' });
+      }
+      team = resolvedTeam;
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      name: normalizedName,
+      email: normalizedEmail,
+      passwordHash,
+      role,
+      team,
+      status: 'active',
+    });
+
+    res.status(201).json(await operationalUserResponse(user._id));
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    if (error.name === 'ValidationError' || error.name === 'CastError') {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -104,9 +184,7 @@ const updateUser = async (req, res) => {
 
     await user.save();
 
-    const updatedUser = await User.findById(user._id)
-      .populate('team', 'name')
-      .select('-passwordHash');
+    const updatedUser = await operationalUserResponse(user._id);
 
     res.json(updatedUser);
   } catch (error) {
@@ -127,6 +205,7 @@ const getAssignableAgents = async (req, res) => {
 
 module.exports = {
   getUsers,
+  createUser,
   updateUser,
   getAssignableAgents,
 };

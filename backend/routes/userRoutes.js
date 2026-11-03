@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, updateUser, getAssignableAgents } = require('../controllers/userController');
+const { getUsers, createUser, updateUser, getAssignableAgents } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
 const { USER_ROLES } = require('../constants/apiConstants');
@@ -14,8 +14,10 @@ router.use(protect); // All remaining routes require authentication
 
 router.get('/assignable-agents', authorize(USER_ROLES.AGENT, USER_ROLES.MANAGER, USER_ROLES.ADMIN), getAssignableAgents);
 
-// GET /api/users - Accessible by managers and admins
-router.get('/', authorize(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getUsers);
+// Managers and admins can list users and create the operational roles allowed by policy.
+router.route('/')
+  .get(authorize(USER_ROLES.MANAGER, USER_ROLES.ADMIN), getUsers)
+  .post(authorize(USER_ROLES.MANAGER, USER_ROLES.ADMIN), createUser);
 
 router.use(authorize(USER_ROLES.MANAGER, USER_ROLES.ADMIN));
 router.get('/invitations', invitationUnavailable);
